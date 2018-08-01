@@ -1,5 +1,5 @@
-var IpfsStorage = artifacts.require("./IpfsStorage.sol");
+var CryptoCare = artifacts.require("./CryptoCare.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(IpfsStorage);
+  deployer.deploy(CryptoCare);
 };
