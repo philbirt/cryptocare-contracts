@@ -13,57 +13,23 @@ contract CryptoCare is ERC721Token, Ownable {
   */
   function mintTo(
     address _to,
-    string _tokenURI,
-    bytes _signedTokenURI,
-    string _charityID
+    string _tokenURI
   ) public payable {
-    bytes32 message = prefixed(keccak256(abi.encodePacked(msg.sender, _tokenURI, this)));
-    require(recoverSigner(message, _signedTokenURI) == owner);
-
     uint256 newTokenId = _getNextTokenId();
     _mint(_to, newTokenId);
     _setTokenURI(newTokenId, _tokenURI);
+  }
 
-    // send money to the charity
-    // add amount to the correct counter
+  function verifyMessage(bytes32 h, uint8 v, bytes32 r, bytes32 s) pure public returns (address) {
+    bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+    bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, h));
+    address addr = ecrecover(prefixedHash, v, r, s);
+    return addr;
   }
 
   function tokensOf(address _owner) external view returns (uint256[] _ownedTokens) {
     require(_owner != address(0));
     _ownedTokens = ownedTokens[_owner];
-  }
-
-  function recoverSigner(bytes32 message, bytes signedMessage) internal pure returns (address) {
-    uint8 v;
-    bytes32 r;
-    bytes32 s;
-
-    (v, r, s) = splitSignature(signedMessage);
-
-    return ecrecover(message, v, r, s);
-  }
-
-  function splitSignature(bytes sig) internal pure returns (uint8, bytes32, bytes32) {
-    require(sig.length == 65);
-
-    bytes32 r;
-    bytes32 s;
-    uint8 v;
-
-    assembly {
-      // first 32 bytes, after the length prefix
-      r := mload(add(sig, 32))
-      // second 32 bytes
-      s := mload(add(sig, 64))
-      // final byte (first byte of the next 32 bytes)
-      v := byte(0, mload(add(sig, 96)))
-    }
-    return (v, r, s);
-  }
-
-  // Builds a prefixed hash to mimic the behavior of eth_sign.
-  function prefixed(bytes32 hash) internal pure returns (bytes32) {
-    return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
   }
 
   /**
