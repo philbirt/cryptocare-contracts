@@ -4,7 +4,7 @@ import "zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 contract CryptoCare is ERC721Token, Ownable {
-  event MessageVerified(address addr);
+  event MessageVerified(address addr, bool verified);
 
   mapping(uint8 => address) public beneficiaryAddresses;
   mapping(uint8 => uint256) public beneficiaryTotals;
@@ -68,12 +68,13 @@ contract CryptoCare is ERC721Token, Ownable {
     _ownedTokens = ownedTokens[_owner];
   }
 
-  function verifyMessage(bytes32 h, uint8 v, bytes32 r, bytes32 s) private returns (bool) {
+  function verifyMessage(bytes32 h, uint8 v, bytes32 r, bytes32 s) public returns (bool) {
     bytes memory prefix = "\x19Ethereum Signed Message:\n32";
     bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, h));
     address addr = ecrecover(prefixedHash, v, r, s);
-    emit MessageVerified(addr);
-    return addr == minterAddress;
+    bool verified = (addr == minterAddress);
+    emit MessageVerified(addr, verified);
+    return verified;
   }
 
   /**
