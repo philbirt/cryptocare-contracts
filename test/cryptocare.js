@@ -42,6 +42,7 @@ contract('CryptoCare', (accounts) => {
       this.toAddress = accounts[2];
       this.beneficiaryId = 1;
       this.tokenUri = 'QmZ8T3ZEr8UDgBpD9yXMcYASmgoZr9jytmozCNMdA3afWM';
+      this.transactionMsg = { from: this.toAddress, value: 100000 };
     });
 
 
@@ -52,17 +53,7 @@ contract('CryptoCare', (accounts) => {
       );
 
       await await this.contract.mintTo.call(
-        this.toAddress,
-        this.beneficiaryId,
-        this.tokenUri,
-        nonce,
-        v,
-        r,
-        s,
-        {
-          from: this.toAddress,
-          value: 100000,
-        }
+        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
       )
     });
 
@@ -73,13 +64,7 @@ contract('CryptoCare', (accounts) => {
       );
 
       await await this.contract.mintTo.call(
-        this.toAddress,
-        this.beneficiaryId,
-        this.tokenUri,
-        nonce,
-        v,
-        r,
-        s,
+        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s,
         {
           from: this.toAddress,
         }
@@ -93,26 +78,10 @@ contract('CryptoCare', (accounts) => {
       );
 
       await this.contract.mintTo(
-        this.toAddress,
-        this.beneficiaryId,
-        this.tokenUri,
-        nonce,
-        v,
-        r,
-        s,
-        {
-          from: this.toAddress,
-          value: 100000,
-        }
+        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
       ).then(async (result) => {
         await this.contract.mintTo(
-          this.toAddress,
-          this.beneficiaryId,
-          this.tokenUri,
-          nonce,
-          v,
-          r,
-          s,
+          this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s,
           {
             from: this.toAddress,
             value: 100000,
@@ -128,17 +97,7 @@ contract('CryptoCare', (accounts) => {
       );
 
       await this.contract.mintTo.call(
-        this.toAddress,
-        1337,
-        this.tokenUri,
-        nonce,
-        v,
-        r,
-        s,
-        {
-          from: this.toAddress,
-          value: 100000,
-        }
+        this.toAddress, 1337, this.tokenUri, nonce, v, r, s, this.transactionMsg
       ).should.be.rejectedWith('revert');
     });
 
@@ -152,17 +111,7 @@ contract('CryptoCare', (accounts) => {
       await this.contract.addBeneficiary(beneficiaryId, accounts[3]).then(async (result) => {
         await this.contract.deactivateBeneficiary(beneficiaryId).then(async (result) => {
           await this.contract.mintTo.call(
-            this.toAddress,
-            beneficiaryId,
-            this.tokenUri,
-            nonce,
-            v,
-            r,
-            s,
-            {
-              from: this.toAddress,
-              value: 100000,
-            }
+            this.toAddress, beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
           ).should.be.rejectedWith('revert');
         });
       });
@@ -176,17 +125,7 @@ contract('CryptoCare', (accounts) => {
         );
 
         await this.contract.mintTo.call(
-          this.toAddress,
-          this.beneficiaryId,
-          this.tokenUri,
-          nonce,
-          v,
-          r,
-          s,
-          {
-            from: this.toAddress,
-            value: 100000,
-          }
+          this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
         ).should.be.rejectedWith('revert');
       });
 
@@ -197,13 +136,7 @@ contract('CryptoCare', (accounts) => {
         );
 
         await this.contract.mintTo.call(
-          this.toAddress,
-          this.beneficiaryId,
-          this.tokenUri,
-          nonce,
-          v,
-          r,
-          s,
+          this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s,
           {
             from: this.toAddress,
             value: 100000,
@@ -224,17 +157,7 @@ contract('CryptoCare', (accounts) => {
       );
 
       await this.contract.mintTo(
-        this.toAddress,
-        this.beneficiaryId,
-        this.tokenUri,
-        nonce,
-        v,
-        r,
-        s,
-        {
-          from: this.toAddress,
-          value: 100000,
-        }
+        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
       ).then(async (result) => {
         let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
         let newAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
@@ -251,17 +174,7 @@ contract('CryptoCare', (accounts) => {
       );
 
       await this.contract.mintTo(
-        this.toAddress,
-        this.beneficiaryId,
-        this.tokenUri,
-        nonce,
-        v,
-        r,
-        s,
-        {
-          from: this.toAddress,
-          value: 100000,
-        }
+        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
       ).then(async (result) => {
         let newAddressBalance = await this.web3.eth.getBalance(this.contract.address);
         assert.equal(newAddressBalance - initialAddressBalance, 5000);
@@ -278,17 +191,7 @@ contract('CryptoCare', (accounts) => {
       );
 
       await this.contract.mintTo(
-        this.toAddress,
-        this.beneficiaryId,
-        this.tokenUri,
-        nonce,
-        v,
-        r,
-        s,
-        {
-          from: this.toAddress,
-          value: 100000,
-        }
+        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
       ).then(async (result) => {
         let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
         assert.equal(retrievedBeneficiary[2].toNumber() - initialTotal, 95000);
