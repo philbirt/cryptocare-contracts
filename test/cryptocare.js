@@ -45,16 +45,25 @@ contract('CryptoCare', (accounts) => {
       this.transactionMsg = { from: this.toAddress, value: 100000 };
     });
 
-
-    it('is successful', async function() {
+    it('mints a new token with a uri and token id', async function() {
       const nonce = 0;
       const { v, r, s } = await generateSignature(
         this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
       );
 
-      await await this.contract.mintTo.call(
+      await this.contract.mintTo(
         this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
-      )
+      ).then(async (result) => {
+        const tokenId = await this.contract.tokenOfOwnerByIndex(this.toAddress, 0);
+        const tokenUri = await this.contract.tokenURI(tokenId);
+
+        assert.equal(tokenId.toNumber(), 1);
+        assert.equal(tokenUri, this.tokenUri);
+
+        truffleAssert.eventEmitted(result, 'Transfer', (ev) => {
+          return ev._to === this.toAddress && ev._tokenId.toNumber() === tokenId.toNumber();
+        });
+      });
     });
 
     it('rejects when no payment is provided', async function() {
@@ -144,8 +153,6 @@ contract('CryptoCare', (accounts) => {
         ).should.be.rejectedWith('revert');
       });
     });
-
-    // it('mints a new token', async function() {});
 
     it('transfer 95% of the payment to the beneficiary', async function() {
       let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);

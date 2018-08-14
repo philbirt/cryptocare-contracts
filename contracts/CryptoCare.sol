@@ -14,8 +14,8 @@ contract CryptoCare is ERC721Token, Ownable {
     uint256 total;
   }
 
-  mapping(uint8 => beneficiaryInfo) public beneficiaries;
   address public minterAddress;
+  mapping(uint8 => beneficiaryInfo) public beneficiaries;
   mapping(uint256 => bool) usedNonces;
 
   constructor() ERC721Token("CryptoCare", "CARE") public {
@@ -31,21 +31,20 @@ contract CryptoCare is ERC721Token, Ownable {
   * @param _beneficiaryId the id in beneficiaryAddresses to send the money to
   * @param _tokenURI token URI for the token metadata
   */
-  function mintTo(address _to, uint8 _beneficiaryId, string _tokenURI, uint256 nonce, uint8 v, bytes32 r, bytes32 s) public payable {
+  function mintTo(
+    address _to, uint8 _beneficiaryId, string _tokenURI, uint256 nonce, uint8 v, bytes32 r, bytes32 s
+  ) public payable returns (uint256) {
     require(msg.value > 0);
     require(!usedNonces[nonce]);
     require(beneficiaries[_beneficiaryId].addr > 0);
     require(beneficiaries[_beneficiaryId].isActive);
     require(verifyMessage(keccak256(abi.encodePacked(_to, _tokenURI, _beneficiaryId, nonce)), v, r, s));
-
     usedNonces[nonce] = true;
-    // uint256 newTokenId = _getNextTokenId();
-    // _mint(_to, newTokenId);
-    // _setTokenURI(newTokenId, _tokenURI);
 
-    uint256 beneficiaryTotal = (msg.value * 95)/100;
-    beneficiaries[_beneficiaryId].addr.transfer(beneficiaryTotal);
-    beneficiaries[_beneficiaryId].total += beneficiaryTotal;
+    uint256 newTokenId = mintToken(_to, _tokenURI);
+    transferToBeneficiaries(msg.value, _beneficiaryId);
+
+    return newTokenId;
   }
 
   /**
@@ -103,6 +102,19 @@ contract CryptoCare is ERC721Token, Ownable {
     address addr = ecrecover(prefixedHash, v, r, s);
     bool verified = (addr == minterAddress);
     return verified;
+  }
+
+  function transferToBeneficiaries(uint256 amount, uint8 _beneficiaryId) private {
+    uint256 beneficiaryTotal = (amount * 95)/100;
+    beneficiaries[_beneficiaryId].addr.transfer(beneficiaryTotal);
+    beneficiaries[_beneficiaryId].total += beneficiaryTotal;
+  }
+
+  function mintToken(address _to, string _tokenURI) private returns (uint256) {
+    uint256 newTokenId = _getNextTokenId();
+    _mint(_to, newTokenId);
+    _setTokenURI(newTokenId, _tokenURI);
+    return newTokenId;
   }
 
   /**
