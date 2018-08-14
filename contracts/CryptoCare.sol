@@ -4,7 +4,6 @@ import "zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 contract CryptoCare is ERC721Token, Ownable {
-  event MessageVerified(address addr, bool verified);
   event BeneficiaryAdded(uint8 beneficiaryId, address addr);
   event BeneficiaryActivated(uint8 beneficiaryId);
   event BeneficiaryDeactivated(uint8 beneficiaryId);
@@ -17,6 +16,7 @@ contract CryptoCare is ERC721Token, Ownable {
 
   mapping(uint8 => beneficiaryInfo) public beneficiaries;
   address public minterAddress;
+  mapping(uint256 => bool) usedNonces;
 
   constructor() ERC721Token("CryptoCare", "CARE") public {
     minterAddress = 0x627306090abaB3A6e1400e9345bC60c78a8BEf57;
@@ -31,18 +31,21 @@ contract CryptoCare is ERC721Token, Ownable {
   * @param _beneficiaryId the id in beneficiaryAddresses to send the money to
   * @param _tokenURI token URI for the token metadata
   */
-  function mintTo(address _to, uint8 _beneficiaryId, string _tokenURI, uint8 v, bytes32 r, bytes32 s) public payable {
+  function mintTo(address _to, uint8 _beneficiaryId, string _tokenURI, uint256 nonce, uint8 v, bytes32 r, bytes32 s) public payable {
     require(msg.value > 0);
+    require(!usedNonces[nonce]);
     require(beneficiaries[_beneficiaryId].addr > 0);
     require(beneficiaries[_beneficiaryId].isActive);
-    require(verifyMessage(keccak256(abi.encodePacked(_tokenURI)), v, r, s));
+    require(verifyMessage(keccak256(abi.encodePacked(_tokenURI, nonce)), v, r, s));
 
-    uint256 newTokenId = _getNextTokenId();
-    _mint(_to, newTokenId);
-    _setTokenURI(newTokenId, _tokenURI);
+    usedNonces[nonce] = true;
+    // uint256 newTokenId = _getNextTokenId();
+    // _mint(_to, newTokenId);
+    // _setTokenURI(newTokenId, _tokenURI);
 
-    beneficiaries[_beneficiaryId].addr.transfer(msg.value);
-    beneficiaries[_beneficiaryId].total += (msg.value * 95)/100;
+    uint256 beneficiaryTotal = (msg.value * 95)/100;
+    beneficiaries[_beneficiaryId].addr.transfer(beneficiaryTotal);
+    beneficiaries[_beneficiaryId].total += beneficiaryTotal;
   }
 
   /**
@@ -94,12 +97,11 @@ contract CryptoCare is ERC721Token, Ownable {
     _ownedTokens = ownedTokens[_owner];
   }
 
-  function verifyMessage(bytes32 h, uint8 v, bytes32 r, bytes32 s) public returns (bool) {
+  function verifyMessage(bytes32 h, uint8 v, bytes32 r, bytes32 s) private view returns (bool) {
     bytes memory prefix = "\x19Ethereum Signed Message:\n32";
     bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, h));
     address addr = ecrecover(prefixedHash, v, r, s);
     bool verified = (addr == minterAddress);
-    emit MessageVerified(addr, verified);
     return verified;
   }
 
