@@ -5,15 +5,23 @@ import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 contract CryptoCare is ERC721Token, Ownable {
   event MessageVerified(address addr, bool verified);
+  event BeneficiaryAdded(uint8 beneficiaryId, address addr);
+  event BeneficiaryActivated(uint8 beneficiaryId);
+  event BeneficiaryDeactivated(uint8 beneficiaryId);
 
-  mapping(uint8 => address) public beneficiaryAddresses;
-  mapping(uint8 => uint256) public beneficiaryTotals;
+  struct beneficiaryInfo {
+    address addr;
+    bool isActive;
+    uint256 total;
+  }
+
+  mapping(uint8 => beneficiaryInfo) public beneficiaries;
   address public minterAddress;
 
   constructor() ERC721Token("CryptoCare", "CARE") public {
     minterAddress = 0x627306090abaB3A6e1400e9345bC60c78a8BEf57;
-    beneficiaryAddresses[1] = 0x7E155a0d7AB1ecEc24E9cCaA99104291655014C8;
-    beneficiaryAddresses[2] = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
+    beneficiaries[1] = beneficiaryInfo(0x7E155a0d7AB1ecEc24E9cCaA99104291655014C8, true, 0);
+    beneficiaries[2] = beneficiaryInfo(0xafBCC39f474baf9596C1135522810d5f409DDE0F, true, 0);
   }
 
   /**
@@ -25,33 +33,51 @@ contract CryptoCare is ERC721Token, Ownable {
   */
   function mintTo(address _to, uint8 _beneficiaryId, string _tokenURI, uint8 v, bytes32 r, bytes32 s) public payable {
     require(msg.value > 0);
-    require(beneficiaryAddresses[_beneficiaryId] > 0);
+    require(beneficiaries[_beneficiaryId].addr > 0);
+    require(beneficiaries[_beneficiaryId].isActive);
     require(verifyMessage(keccak256(abi.encodePacked(_tokenURI)), v, r, s));
 
     uint256 newTokenId = _getNextTokenId();
     _mint(_to, newTokenId);
     _setTokenURI(newTokenId, _tokenURI);
-    beneficiaryAddresses[_beneficiaryId].transfer(msg.value);
-    beneficiaryTotals[_beneficiaryId] += msg.value;
+
+    beneficiaries[_beneficiaryId].addr.transfer(msg.value);
+    beneficiaries[_beneficiaryId].total += (msg.value * 95)/100;
   }
 
   /**
   * @dev Adds a beneficiary to the mapping
-  * @param _id the identifier for the beneficiary address
-  * @param _addr the address of the beneficiary
+  * @param beneficiaryId the identifier for the beneficiary address
+  * @param addr the address of the beneficiary
   */
-  function addBeneficiary(uint8 _id, address _addr) public onlyOwner {
-    require(beneficiaryAddresses[_id] == 0);
-    beneficiaryAddresses[_id] = _addr;
+  function addBeneficiary(uint8 beneficiaryId, address addr) public onlyOwner {
+    require(beneficiaries[beneficiaryId].addr == 0);
+    beneficiaries[beneficiaryId] = beneficiaryInfo(addr, true, 0);
+    emit BeneficiaryAdded(beneficiaryId, addr);
   }
 
   /**
-  * @dev Removes a beneficiary from the mapping
-  * @param _id the identifier for the beneficiary address
+  * @dev Activates an existing beneficiary in the mapping
+  * @param beneficiaryId the identifier for the beneficiary address
   */
-  function removeBeneficiary(uint8 _id) public onlyOwner {
-    require(beneficiaryAddresses[_id] > 0);
-    beneficiaryAddresses[_id] = 0;
+  function activateBeneficiary(uint8 beneficiaryId) public onlyOwner {
+    require(beneficiaries[beneficiaryId].addr > 0);
+    require(!beneficiaries[beneficiaryId].isActive);
+
+    beneficiaries[beneficiaryId].isActive = true;
+    emit BeneficiaryActivated(beneficiaryId);
+  }
+
+  /**
+  * @dev Deactivates a beneficiary from the mapping
+  * @param beneficiaryId the identifier for the beneficiary address
+  */
+  function deactivateBeneficiary(uint8 beneficiaryId) public onlyOwner {
+    require(beneficiaries[beneficiaryId].addr > 0);
+    require(beneficiaries[beneficiaryId].isActive);
+
+    beneficiaries[beneficiaryId].isActive = false;
+    emit BeneficiaryDeactivated(beneficiaryId);
   }
 
   /**
