@@ -36,7 +36,7 @@ contract CryptoCare is ERC721Token, Ownable {
     require(!usedNonces[nonce]);
     require(beneficiaries[_beneficiaryId].addr > 0);
     require(beneficiaries[_beneficiaryId].isActive);
-    require(verifyMessage(keccak256(abi.encodePacked(_tokenURI, nonce)), v, r, s));
+    require(verifyMessage(keccak256(abi.encodePacked(_to, _tokenURI, _beneficiaryId, nonce)), v, r, s));
 
     usedNonces[nonce] = true;
     // uint256 newTokenId = _getNextTokenId();
