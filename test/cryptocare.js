@@ -68,7 +68,7 @@ contract('CryptoCare', (accounts) => {
       });
     });
 
-    it('transfer 95% of the payment to the beneficiary', async function() {
+    it('transfer the total minus CryptoCare rate to the beneficiary', async function() {
       let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
       let initialAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
 
@@ -86,7 +86,7 @@ contract('CryptoCare', (accounts) => {
       });
     });
 
-    it('keeps 5% of payment in the contract', async function() {
+    it('keeps the payment rate for CryptoCare in the contract', async function() {
       let initialAddressBalance = await this.web3.eth.getBalance(this.contract.address);
 
       const nonce = 8;
@@ -104,7 +104,7 @@ contract('CryptoCare', (accounts) => {
 
     it('updates the beneficiary total', async function() {
       let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
-      let initialTotal = retrievedBeneficiary[2].toNumber();
+      let initialTotal = retrievedBeneficiary[3].toNumber();
 
       const nonce = 9;
       const { v, r, s } = await generateSignature(
@@ -115,7 +115,7 @@ contract('CryptoCare', (accounts) => {
         this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
       ).then(async (result) => {
         let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
-        assert.equal(retrievedBeneficiary[2].toNumber() - initialTotal, 95000);
+        assert.equal(retrievedBeneficiary[3].toNumber() - initialTotal, 95000);
       });
     });
 
@@ -268,6 +268,44 @@ contract('CryptoCare', (accounts) => {
 
       let retrievedBeneficiary2 = await this.contract.beneficiaries.call(beneficiaryId);
       assert.equal(retrievedBeneficiary[0], retrievedBeneficiary2[0]);
+    });
+  });
+
+  describe('updateBeneficiaryRate', () => {
+    it('updates beneficiary rate and emits event', async function() {
+      const beneficiaryId = 2;
+      const rate = 3;
+
+      await this.contract.updateBeneficiaryRate(beneficiaryId, rate).then(async (result) => {
+        let retrievedBeneficiary = await this.contract.beneficiaries.call(beneficiaryId);
+        assert.equal(retrievedBeneficiary[2].toNumber(), rate);
+
+        truffleAssert.eventEmitted(result, 'BeneficiaryRateUpdated', (ev) => {
+          return ev.beneficiaryId.toNumber() === beneficiaryId
+        });
+      });
+    });
+
+    it('rejects when paused', async function() {
+      await this.contract.pause();
+
+      await this.contract.updateBeneficiaryRate.call(
+        2, 3
+      ).should.be.rejectedWith('revert');
+
+      await this.contract.unpause();
+    });
+
+    it('rejects when attempting to call from non-owner address', async function() {
+      await this.contract.updateBeneficiaryRate.call(
+        2, 3, { from: accounts[1] }
+      ).should.be.rejectedWith('revert');
+    });
+
+    it('rejects when rate is over 100', async function() {
+      await this.contract.updateBeneficiaryRate.call(
+        2, 101
+      ).should.be.rejectedWith('revert');
     });
   });
 
@@ -440,6 +478,39 @@ contract('CryptoCare', (accounts) => {
     it('rejects when attempting to call from non-owner address', async function() {
       await this.contract.updateMinter.call(
         this.minterAddress, { from: accounts[1] }
+      ).should.be.rejectedWith('revert');
+    });
+  });
+
+  describe('updateOverrideRate', () => {
+    beforeEach(async function () {
+      this.newOverrideRate = 3;
+    });
+
+    it('updates the override rate and whether its active', async function() {
+      let oldOverrideRate = await this.contract.overrideRate.call();
+
+      await this.contract.updateOverrideRate(false, this.newOverrideRate).then(async (result) => {
+        let retrievedOverrideRate = await this.contract.overrideRate.call();
+        assert.equal(retrievedOverrideRate, this.newOverrideRate);
+      });
+
+      await this.contract.updateOverrideRate(true, oldOverrideRate);
+    });
+
+    it('rejects when paused', async function() {
+      await this.contract.pause();
+
+      await this.contract.updateOverrideRate.call(
+        false, this.newOverrideRate
+      ).should.be.rejectedWith('revert');
+
+      await this.contract.unpause();
+    });
+
+    it('rejects when attempting to call from non-owner address', async function() {
+      await this.contract.updateOverrideRate.call(
+        false, this.newOverrideRate, { from: accounts[1] }
       ).should.be.rejectedWith('revert');
     });
   });

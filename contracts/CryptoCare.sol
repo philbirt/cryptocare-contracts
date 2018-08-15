@@ -6,12 +6,14 @@ import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
 
 contract CryptoCare is ERC721Token, Ownable, Pausable {
   event BeneficiaryAdded(uint8 beneficiaryId, address addr);
+  event BeneficiaryRateUpdated(uint8 beneficiaryId, uint8 rate);
   event BeneficiaryActivated(uint8 beneficiaryId);
   event BeneficiaryDeactivated(uint8 beneficiaryId);
 
   struct beneficiaryInfo {
     address addr;
     bool isActive;
+    uint8 rate;
     uint256 total;
   }
 
@@ -19,10 +21,15 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
   mapping(uint8 => beneficiaryInfo) public beneficiaries;
   mapping(uint256 => bool) usedNonces;
 
+  uint8 public overrideRate;
+  bool public overrideRateActive;
+
   constructor() ERC721Token("CryptoCare", "CARE") public {
     minterAddress = 0x627306090abaB3A6e1400e9345bC60c78a8BEf57;
-    beneficiaries[1] = beneficiaryInfo(0x7E155a0d7AB1ecEc24E9cCaA99104291655014C8, true, 0);
-    beneficiaries[2] = beneficiaryInfo(0xafBCC39f474baf9596C1135522810d5f409DDE0F, true, 0);
+    overrideRate = 5;
+    overrideRateActive = true;
+    beneficiaries[1] = beneficiaryInfo(0x7E155a0d7AB1ecEc24E9cCaA99104291655014C8, true, 5, 0);
+    beneficiaries[2] = beneficiaryInfo(0xafBCC39f474baf9596C1135522810d5f409DDE0F, true, 5, 0);
   }
 
   /**
@@ -56,8 +63,20 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
   */
   function addBeneficiary(uint8 beneficiaryId, address addr) public onlyOwner whenNotPaused {
     require(beneficiaries[beneficiaryId].addr == 0);
-    beneficiaries[beneficiaryId] = beneficiaryInfo(addr, true, 0);
+    beneficiaries[beneficiaryId] = beneficiaryInfo(addr, true, 5, 0);
     emit BeneficiaryAdded(beneficiaryId, addr);
+  }
+
+  /**
+  * @dev Updates the rate witheld for a beneficiary
+  * @param beneficiaryId the identifier for the beneficiary address
+  */
+  function updateBeneficiaryRate(uint8 beneficiaryId, uint8 rate) public onlyOwner whenNotPaused {
+    require(beneficiaries[beneficiaryId].addr > 0);
+    require(rate < 100);
+
+    beneficiaries[beneficiaryId].rate = rate;
+    emit BeneficiaryRateUpdated(beneficiaryId, rate);
   }
 
   /**
@@ -94,6 +113,17 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
   }
 
   /**
+  * @dev Updates override rate and if it is active
+  * @param _active whether the override is active or not
+  * @param _rate the new override rate
+  */
+  function updateOverrideRate(bool _active, uint8 _rate) public onlyOwner whenNotPaused {
+    require(_rate < 100);
+    overrideRateActive = _active;
+    overrideRate = _rate;
+  }
+
+  /**
   * @dev Allows owner to withdraw funds in contract
   * @param _amount the amount to withdraw
   */
@@ -117,9 +147,12 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
   }
 
   function transferToBeneficiaries(uint256 amount, uint8 _beneficiaryId) private {
-    uint256 beneficiaryTotal = (amount * 95)/100;
-    beneficiaries[_beneficiaryId].addr.transfer(beneficiaryTotal);
-    beneficiaries[_beneficiaryId].total += beneficiaryTotal;
+    beneficiaryInfo storage beneficiary = beneficiaries[_beneficiaryId];
+    uint8 rate = overrideRateActive ? overrideRate : beneficiary.rate;
+    uint256 beneficiaryTotal = (amount * (100 - rate))/100;
+
+    beneficiary.addr.transfer(beneficiaryTotal);
+    beneficiary.total += beneficiaryTotal;
   }
 
   function mintToken(address _to, string _tokenURI) private returns (uint256) {
