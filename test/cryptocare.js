@@ -72,12 +72,28 @@ contract('CryptoCare', (accounts) => {
         this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
       );
 
-      await await this.contract.mintTo.call(
+      await this.contract.mintTo.call(
         this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s,
         {
           from: this.toAddress,
         }
       ).should.be.rejectedWith('revert');
+    });
+
+    it('rejects when the contract is paused', async function() {
+      const nonce = 1;
+      const { v, r, s } = await generateSignature(
+        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
+      );
+
+      await this.contract.pause();
+
+      await this.contract.mintTo.call(
+        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
+      ).should.be.rejectedWith('revert');
+
+
+      await this.contract.unpause();
     });
 
     it('rejects when the nonce has been used', async function() {
@@ -224,11 +240,21 @@ contract('CryptoCare', (accounts) => {
       });
     });
 
+    it('rejects when paused', async function() {
+      await this.contract.pause();
+
+      await this.contract.addBeneficiary.call(
+        100, this.beneficiaryAddress
+      ).should.be.rejectedWith('revert');
+
+      await this.contract.unpause();
+    });
+
     it('rejects when attempting to call from non-owner address', async function() {
       await this.contract.addBeneficiary.call(
-        100, this.beneficiaryAddress, { from: accounts[1] }
+        101, this.beneficiaryAddress, { from: accounts[1] }
       ).should.be.rejectedWith('revert');
-    })
+    });
 
     it('rejects when attempting to override an existing beneficiary at an address', async function() {
       let beneficiaryId = 1; // This ID is set in the constructor, so it already exists
@@ -244,14 +270,17 @@ contract('CryptoCare', (accounts) => {
   });
 
   describe('deactivateBeneficiary', () => {
+    beforeEach(async function () {
+      this.beneficiaryAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
+    });
+
     it('deactivates an existing beneficiary and emits event', async function() {
       const beneficiaryId = 10;
-      const beneficiaryAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
-      await this.contract.addBeneficiary(beneficiaryId, beneficiaryAddress);
+      await this.contract.addBeneficiary(beneficiaryId, this.beneficiaryAddress);
 
       await this.contract.deactivateBeneficiary(beneficiaryId).then(async (result) => {
         let retrievedBeneficiary = await this.contract.beneficiaries.call(beneficiaryId);
-        assert.equal(retrievedBeneficiary[0], beneficiaryAddress);
+        assert.equal(retrievedBeneficiary[0], this.beneficiaryAddress);
         assert.equal(retrievedBeneficiary[1], false);
 
         truffleAssert.eventEmitted(result, 'BeneficiaryDeactivated', (ev) => {
@@ -260,24 +289,35 @@ contract('CryptoCare', (accounts) => {
       });
     });
 
-    it('rejects when attempting to call from non-owner address', async function() {
+    it('rejects when paused', async function() {
       const beneficiaryId = 11;
-      const beneficiaryAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
-      await this.contract.addBeneficiary(beneficiaryId, beneficiaryAddress);
+      await this.contract.addBeneficiary(beneficiaryId, this.beneficiaryAddress);
+
+      await this.contract.pause();
 
       await this.contract.deactivateBeneficiary.call(
-        beneficiaryAddress, { from: accounts[1] }
+        this.beneficiaryAddress
+      ).should.be.rejectedWith('revert');
+
+      await this.contract.unpause();
+    });
+
+    it('rejects when attempting to call from non-owner address', async function() {
+      const beneficiaryId = 12;
+      await this.contract.addBeneficiary(beneficiaryId, this.beneficiaryAddress);
+
+      await this.contract.deactivateBeneficiary.call(
+        this.beneficiaryAddress, { from: accounts[1] }
       ).should.be.rejectedWith('revert');
     });
 
     it('rejects when attempting to deactivate a deactivated beneficiary', async function() {
-      const beneficiaryId = 12;
-      const beneficiaryAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
-      await this.contract.addBeneficiary(beneficiaryId, beneficiaryAddress);
+      const beneficiaryId = 13;
+      await this.contract.addBeneficiary(beneficiaryId, this.beneficiaryAddress);
 
       await this.contract.deactivateBeneficiary(beneficiaryId).then(async (result) => {
         let retrievedBeneficiary = await this.contract.beneficiaries.call(beneficiaryId);
-        assert.equal(retrievedBeneficiary[0], beneficiaryAddress);
+        assert.equal(retrievedBeneficiary[0], this.beneficiaryAddress);
         assert.equal(retrievedBeneficiary[1], false);
         await this.contract.deactivateBeneficiary.call(beneficiaryId).should.be.rejectedWith('revert');
       });
@@ -285,15 +325,18 @@ contract('CryptoCare', (accounts) => {
   });
 
   describe('activateBeneficiary', () => {
+    beforeEach(async function () {
+      this.beneficiaryAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
+    });
+
     it('activates an existing deactivated beneficiary and emits event', async function() {
       const beneficiaryId = 20;
-      const beneficiaryAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
-      await this.contract.addBeneficiary(beneficiaryId, beneficiaryAddress);
+      await this.contract.addBeneficiary(beneficiaryId, this.beneficiaryAddress);
 
       await this.contract.deactivateBeneficiary(beneficiaryId).then(async (result) => {
         await this.contract.activateBeneficiary(beneficiaryId).then(async (result) => {
           let retrievedBeneficiary = await this.contract.beneficiaries.call(beneficiaryId);
-          assert.equal(retrievedBeneficiary[0], beneficiaryAddress);
+          assert.equal(retrievedBeneficiary[0], this.beneficiaryAddress);
           assert.equal(retrievedBeneficiary[1], true);
 
           truffleAssert.eventEmitted(result, 'BeneficiaryActivated', (ev) => {
@@ -303,26 +346,38 @@ contract('CryptoCare', (accounts) => {
       });
     });
 
-    it('rejects when attempting to call from non-owner address', async function() {
+    it('rejects when paused', async function() {
       const beneficiaryId = 21;
-      const beneficiaryAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
-      await this.contract.addBeneficiary(beneficiaryId, beneficiaryAddress);
+      await this.contract.addBeneficiary(beneficiaryId, this.beneficiaryAddress);
+      await this.contract.deactivateBeneficiary(beneficiaryId);
+
+      this.contract.pause();
+
+      await this.contract.activateBeneficiary.call(
+        this.beneficiaryAddress
+      ).should.be.rejectedWith('revert');
+
+      this.contract.unpause();
+    });
+
+    it('rejects when attempting to call from non-owner address', async function() {
+      const beneficiaryId = 22;
+      await this.contract.addBeneficiary(beneficiaryId, this.beneficiaryAddress);
       await this.contract.deactivateBeneficiary(beneficiaryId);
 
       await this.contract.activateBeneficiary.call(
-        beneficiaryAddress, { from: accounts[1] }
+        this.beneficiaryAddress, { from: accounts[1] }
       ).should.be.rejectedWith('revert');
     });
 
     it('rejects when attempting to activate an already active beneficiary', async function() {
-      const beneficiaryId = 22;
-      const beneficiaryAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
-      await this.contract.addBeneficiary(beneficiaryId, beneficiaryAddress);
+      const beneficiaryId = 23;
+      await this.contract.addBeneficiary(beneficiaryId, this.beneficiaryAddress);
 
       await this.contract.deactivateBeneficiary(beneficiaryId).then(async (result) => {
         await this.contract.activateBeneficiary(beneficiaryId).then(async (result) => {
           let retrievedBeneficiary = await this.contract.beneficiaries.call(beneficiaryId);
-          assert.equal(retrievedBeneficiary[0], beneficiaryAddress);
+          assert.equal(retrievedBeneficiary[0], this.beneficiaryAddress);
           assert.equal(retrievedBeneficiary[1], true);
           await this.contract.activateBeneficiary.call(beneficiaryId).should.be.rejectedWith('revert');
         });
@@ -333,26 +388,33 @@ contract('CryptoCare', (accounts) => {
   describe('updateMinter', () => {
     beforeEach(async function () {
       this.beneficiaryAddress = accounts[1];
+      this.minterAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
     });
 
     it('updates the minter address', async function() {
       let oldMinterAddress = await this.contract.minterAddress.call();
-      const minterAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
 
-      await this.contract.updateMinter(minterAddress).then(async (result) => {
+      await this.contract.updateMinter(this.minterAddress).then(async (result) => {
         let retrievedMinterAddress = await this.contract.minterAddress.call();
-        assert.equal(retrievedMinterAddress, minterAddress);
+        assert.equal(retrievedMinterAddress, this.minterAddress);
       });
 
-      // Update the minter back to the original address
       await this.contract.updateMinter(oldMinterAddress);
     });
 
-    it('rejects when attempting to call from non-owner address', async function() {
-      const minterAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
+    it('rejects when paused', async function() {
+      await this.contract.pause();
 
       await this.contract.updateMinter.call(
-        minterAddress, { from: accounts[1] }
+        this.minterAddress, { from: accounts[1] }
+      ).should.be.rejectedWith('revert');
+    
+      await this.contract.unpause();
+    });
+
+    it('rejects when attempting to call from non-owner address', async function() {
+      await this.contract.updateMinter.call(
+        this.minterAddress, { from: accounts[1] }
       ).should.be.rejectedWith('revert');
     });
   });

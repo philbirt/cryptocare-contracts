@@ -2,8 +2,9 @@ pragma solidity ^0.4.17;
 
 import "zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
 
-contract CryptoCare is ERC721Token, Ownable {
+contract CryptoCare is ERC721Token, Ownable, Pausable {
   event BeneficiaryAdded(uint8 beneficiaryId, address addr);
   event BeneficiaryActivated(uint8 beneficiaryId);
   event BeneficiaryDeactivated(uint8 beneficiaryId);
@@ -33,7 +34,7 @@ contract CryptoCare is ERC721Token, Ownable {
   */
   function mintTo(
     address _to, uint8 _beneficiaryId, string _tokenURI, uint256 nonce, uint8 v, bytes32 r, bytes32 s
-  ) public payable returns (uint256) {
+  ) public payable whenNotPaused returns (uint256) {
     require(msg.value > 0);
     require(!usedNonces[nonce]);
     require(beneficiaries[_beneficiaryId].addr > 0);
@@ -52,7 +53,7 @@ contract CryptoCare is ERC721Token, Ownable {
   * @param beneficiaryId the identifier for the beneficiary address
   * @param addr the address of the beneficiary
   */
-  function addBeneficiary(uint8 beneficiaryId, address addr) public onlyOwner {
+  function addBeneficiary(uint8 beneficiaryId, address addr) public onlyOwner whenNotPaused {
     require(beneficiaries[beneficiaryId].addr == 0);
     beneficiaries[beneficiaryId] = beneficiaryInfo(addr, true, 0);
     emit BeneficiaryAdded(beneficiaryId, addr);
@@ -62,7 +63,7 @@ contract CryptoCare is ERC721Token, Ownable {
   * @dev Activates an existing beneficiary in the mapping
   * @param beneficiaryId the identifier for the beneficiary address
   */
-  function activateBeneficiary(uint8 beneficiaryId) public onlyOwner {
+  function activateBeneficiary(uint8 beneficiaryId) public onlyOwner whenNotPaused {
     require(beneficiaries[beneficiaryId].addr > 0);
     require(!beneficiaries[beneficiaryId].isActive);
 
@@ -74,7 +75,7 @@ contract CryptoCare is ERC721Token, Ownable {
   * @dev Deactivates a beneficiary from the mapping
   * @param beneficiaryId the identifier for the beneficiary address
   */
-  function deactivateBeneficiary(uint8 beneficiaryId) public onlyOwner {
+  function deactivateBeneficiary(uint8 beneficiaryId) public onlyOwner whenNotPaused {
     require(beneficiaries[beneficiaryId].addr > 0);
     require(beneficiaries[beneficiaryId].isActive);
 
@@ -86,7 +87,7 @@ contract CryptoCare is ERC721Token, Ownable {
   * @dev Updates the minter address
   * @param _addr the new minter address
   */
-  function updateMinter(address _addr) public onlyOwner {
+  function updateMinter(address _addr) public onlyOwner whenNotPaused {
     require(_addr > 0);
     minterAddress = _addr;
   }
