@@ -31,16 +31,17 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
   * @param _to address of the future owner of the token
   * @param _beneficiaryId the id in beneficiaryAddresses to send the money to
   * @param _tokenURI token URI for the token metadata
+  * @param _nonce nonce for the transaction
   */
   function mintTo(
-    address _to, uint8 _beneficiaryId, string _tokenURI, uint256 nonce, uint8 v, bytes32 r, bytes32 s
+    address _to, uint8 _beneficiaryId, string _tokenURI, uint256 _nonce, uint8 v, bytes32 r, bytes32 s
   ) public payable whenNotPaused returns (uint256) {
     require(msg.value > 0);
-    require(!usedNonces[nonce]);
+    require(!usedNonces[_nonce]);
     require(beneficiaries[_beneficiaryId].addr > 0);
     require(beneficiaries[_beneficiaryId].isActive);
-    require(verifyMessage(keccak256(abi.encodePacked(_to, _tokenURI, _beneficiaryId, nonce)), v, r, s));
-    usedNonces[nonce] = true;
+    require(verifyMessage(keccak256(abi.encodePacked(_to, _tokenURI, _beneficiaryId, _nonce)), v, r, s));
+    usedNonces[_nonce] = true;
 
     uint256 newTokenId = mintToken(_to, _tokenURI);
     transferToBeneficiaries(msg.value, _beneficiaryId);
