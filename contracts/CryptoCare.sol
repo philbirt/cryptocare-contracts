@@ -25,11 +25,8 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
   bool public overrideRateActive;
 
   constructor() ERC721Token("CryptoCare", "CARE") public {
-    minterAddress = 0x627306090abaB3A6e1400e9345bC60c78a8BEf57;
     overrideRate = 5;
     overrideRateActive = true;
-    beneficiaries[1] = beneficiaryInfo(0x7E155a0d7AB1ecEc24E9cCaA99104291655014C8, true, 5, 0);
-    beneficiaries[2] = beneficiaryInfo(0xafBCC39f474baf9596C1135522810d5f409DDE0F, true, 5, 0);
   }
 
   /**

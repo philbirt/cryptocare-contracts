@@ -36,6 +36,15 @@ contract('CryptoCare', (accounts) => {
     this.web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:9545'));
     this.minterAddress = accounts[0];
     this.contract = await CryptoCare.deployed();
+
+    // Don't attempt to update beneficiaries/minter once they are added
+    const retrievedBeneficiary = await this.contract.beneficiaries.call(1);
+
+    if(!retrievedBeneficiary[1]) {
+      await this.contract.addBeneficiary(1, '0x7E155a0d7AB1ecEc24E9cCaA99104291655014C8');
+      await this.contract.addBeneficiary(2, '0xafBCC39f474baf9596C1135522810d5f409DDE0F');
+      await this.contract.updateMinter(this.minterAddress);
+    }
   });
 
   describe('mintTo', () => {
