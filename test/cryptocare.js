@@ -18,13 +18,14 @@ function splitSignature(web3, signature) {
   return { v, r, s };
 }
 
-async function generateSignature(toAddress, tokenUri, beneficiaryId, nonce, minterAddress) {
+async function generateSignature(toAddress, tokenUri, beneficiaryId, nonce, msgValue, minterAddress) {
   const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:9545'));
   const hash = Web3Utils.soliditySha3(
     { t: 'address', v: toAddress },
     { t: 'string', v: tokenUri},
     { t: 'uint8', v: beneficiaryId },
-    { t: 'uint256', v: nonce }
+    { t: 'uint256', v: nonce },
+    { t: 'uint256', v: msgValue }
   );
   const signature = await web3.eth.sign(hash, minterAddress);
   return splitSignature(web3, signature);
@@ -42,13 +43,14 @@ contract('CryptoCare', (accounts) => {
       this.toAddress = accounts[2];
       this.beneficiaryId = 1;
       this.tokenUri = 'QmZ8T3ZEr8UDgBpD9yXMcYASmgoZr9jytmozCNMdA3afWM';
-      this.transactionMsg = { from: this.toAddress, value: 100000 };
+      this.msgValue = 100000;
+      this.transactionMsg = { from: this.toAddress, value: this.msgValue };
     });
 
     it('mints a new token with a uri and token id', async function() {
       const nonce = 0;
       const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
+        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
       );
 
       await this.contract.mintTo(
@@ -72,7 +74,7 @@ contract('CryptoCare', (accounts) => {
 
       const nonce = 7;
       const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
+        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
       );
 
       await this.contract.mintTo(
@@ -89,7 +91,7 @@ contract('CryptoCare', (accounts) => {
 
       const nonce = 8;
       const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
+        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
       );
 
       await this.contract.mintTo(
@@ -106,7 +108,7 @@ contract('CryptoCare', (accounts) => {
 
       const nonce = 9;
       const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
+        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
       );
 
       await this.contract.mintTo(
@@ -120,7 +122,7 @@ contract('CryptoCare', (accounts) => {
     it('rejects when no payment is provided', async function() {
       const nonce = 1;
       const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
+        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
       );
 
       await this.contract.mintTo.call(
@@ -134,7 +136,7 @@ contract('CryptoCare', (accounts) => {
     it('rejects when the contract is paused', async function() {
       const nonce = 1;
       const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
+        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
       );
 
       await this.contract.pause();
@@ -150,7 +152,7 @@ contract('CryptoCare', (accounts) => {
     it('rejects when the nonce has been used', async function() {
       const nonce = 2;
       const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
+        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
       );
 
       await this.contract.mintTo(
@@ -169,7 +171,7 @@ contract('CryptoCare', (accounts) => {
     it('rejects when the beneficiary address is not present', async function() {
       const nonce = 3;
       const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
+        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
       );
 
       await this.contract.mintTo.call(
@@ -181,7 +183,7 @@ contract('CryptoCare', (accounts) => {
       const beneficiaryId = 1338;
       const nonce = 4;
       const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
+        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
       );
 
       await this.contract.addBeneficiary(beneficiaryId, accounts[3]).then(async (result) => {
@@ -197,7 +199,7 @@ contract('CryptoCare', (accounts) => {
       it('rejects when a different address signed the message', async function() {
         const nonce = 5;
         const { v, r, s } = await generateSignature(
-          this.toAddress, this.tokenUri, this.beneficiaryId, nonce, accounts[1]
+          this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, accounts[1]
         );
 
         await this.contract.mintTo.call(
@@ -208,7 +210,7 @@ contract('CryptoCare', (accounts) => {
       it('rejects when the ECDSA signature is for another token uri', async function() {
         const nonce = 6;
         const { v, r, s } = await generateSignature(
-          this.toAddress, 'QmSdwSq5hf2iLweoijSqKHPod5J7REcn3WErAnTxcYVXU3', this.beneficiaryId, nonce, this.minterAddress
+          this.toAddress, 'QmSdwSq5hf2iLweoijSqKHPod5J7REcn3WErAnTxcYVXU3', this.beneficiaryId, nonce, this.msgValue, this.minterAddress
         );
 
         await this.contract.mintTo.call(
