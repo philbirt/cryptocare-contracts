@@ -66,6 +66,57 @@ contract('CryptoCare', (accounts) => {
       });
     });
 
+    it('transfer 95% of the payment to the beneficiary', async function() {
+      let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
+      let initialAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
+
+      const nonce = 7;
+      const { v, r, s } = await generateSignature(
+        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
+      );
+
+      await this.contract.mintTo(
+        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
+      ).then(async (result) => {
+        let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
+        let newAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
+        assert.equal(newAddressBalance - initialAddressBalance, 95000);
+      });
+    });
+
+    it('keeps 5% of payment in the contract', async function() {
+      let initialAddressBalance = await this.web3.eth.getBalance(this.contract.address);
+
+      const nonce = 8;
+      const { v, r, s } = await generateSignature(
+        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
+      );
+
+      await this.contract.mintTo(
+        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
+      ).then(async (result) => {
+        let newAddressBalance = await this.web3.eth.getBalance(this.contract.address);
+        assert.equal(newAddressBalance - initialAddressBalance, 5000);
+      });
+    });
+
+    it('updates the beneficiary total', async function() {
+      let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
+      let initialTotal = retrievedBeneficiary[2].toNumber();
+
+      const nonce = 9;
+      const { v, r, s } = await generateSignature(
+        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
+      );
+
+      await this.contract.mintTo(
+        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
+      ).then(async (result) => {
+        let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
+        assert.equal(retrievedBeneficiary[2].toNumber() - initialTotal, 95000);
+      });
+    });
+
     it('rejects when no payment is provided', async function() {
       const nonce = 1;
       const { v, r, s } = await generateSignature(
@@ -167,57 +218,6 @@ contract('CryptoCare', (accounts) => {
             value: 100000,
           }
         ).should.be.rejectedWith('revert');
-      });
-    });
-
-    it('transfer 95% of the payment to the beneficiary', async function() {
-      let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
-      let initialAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
-
-      const nonce = 7;
-      const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
-      );
-
-      await this.contract.mintTo(
-        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
-      ).then(async (result) => {
-        let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
-        let newAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
-        assert.equal(newAddressBalance - initialAddressBalance, 95000);
-      });
-    });
-
-    it('keeps 5% of payment in the contract', async function() {
-      let initialAddressBalance = await this.web3.eth.getBalance(this.contract.address);
-
-      const nonce = 8;
-      const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
-      );
-
-      await this.contract.mintTo(
-        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
-      ).then(async (result) => {
-        let newAddressBalance = await this.web3.eth.getBalance(this.contract.address);
-        assert.equal(newAddressBalance - initialAddressBalance, 5000);
-      });
-    });
-
-    it('updates the beneficiary total', async function() {
-      let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
-      let initialTotal = retrievedBeneficiary[2].toNumber();
-
-      const nonce = 9;
-      const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.minterAddress
-      );
-
-      await this.contract.mintTo(
-        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
-      ).then(async (result) => {
-        let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
-        assert.equal(retrievedBeneficiary[2].toNumber() - initialTotal, 95000);
       });
     });
   });
@@ -395,7 +395,7 @@ contract('CryptoCare', (accounts) => {
       assert.equal(initialContractBalance - 10, newContractBalance);
     });
 
-    it('rejects when non-owner calls', async function() {
+    it('rejects when attempting to call from non-owner address', async function() {
       await this.contract.withdraw(
         10, { from: accounts[1] }
       ).should.be.rejectedWith('revert');
