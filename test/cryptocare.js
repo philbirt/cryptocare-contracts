@@ -68,158 +68,162 @@ contract('CryptoCare', (accounts) => {
       });
     });
 
-    it('transfer the total minus CryptoCare rate to the beneficiary', async function() {
-      let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
-      let initialAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
-
-      const nonce = 7;
-      const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
-      );
-
-      await this.contract.mintTo(
-        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
-      ).then(async (result) => {
+    describe('beneficiary rates', async function() {
+      it('transfer the total minus CryptoCare rate to the beneficiary', async function() {
         let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
-        let newAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
-        assert.equal(newAddressBalance - initialAddressBalance, 95000);
-      });
-    });
+        let initialAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
 
-    it('keeps the payment rate for CryptoCare in the contract', async function() {
-      let initialAddressBalance = await this.web3.eth.getBalance(this.contract.address);
+        const nonce = 7;
+        const { v, r, s } = await generateSignature(
+          this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
+        );
 
-      const nonce = 8;
-      const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
-      );
-
-      await this.contract.mintTo(
-        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
-      ).then(async (result) => {
-        let newAddressBalance = await this.web3.eth.getBalance(this.contract.address);
-        assert.equal(newAddressBalance - initialAddressBalance, 5000);
-      });
-    });
-
-    it('updates the beneficiary total', async function() {
-      let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
-      let initialTotal = retrievedBeneficiary[3].toNumber();
-
-      const nonce = 9;
-      const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
-      );
-
-      await this.contract.mintTo(
-        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
-      ).then(async (result) => {
-        let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
-        assert.equal(retrievedBeneficiary[3].toNumber() - initialTotal, 95000);
-      });
-    });
-
-    it('rejects when no payment is provided', async function() {
-      const nonce = 1;
-      const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
-      );
-
-      await this.contract.mintTo.call(
-        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s,
-        {
-          from: this.toAddress,
-        }
-      ).should.be.rejectedWith('revert');
-    });
-
-    it('rejects when the contract is paused', async function() {
-      const nonce = 1;
-      const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
-      );
-
-      await this.contract.pause();
-
-      await this.contract.mintTo.call(
-        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
-      ).should.be.rejectedWith('revert');
-
-
-      await this.contract.unpause();
-    });
-
-    it('rejects when the nonce has been used', async function() {
-      const nonce = 2;
-      const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
-      );
-
-      await this.contract.mintTo(
-        this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
-      ).then(async (result) => {
         await this.contract.mintTo(
-          this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s,
-          {
-            from: this.toAddress,
-            value: 100000,
-          }
-        ).should.be.rejectedWith('revert');
+          this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
+        ).then(async (result) => {
+          let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
+          let newAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
+          assert.equal(newAddressBalance - initialAddressBalance, 95000);
+        });
       });
-    });
 
-    it('rejects when the beneficiary address is not present', async function() {
-      const nonce = 3;
-      const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
-      );
+      it('keeps the payment rate for CryptoCare in the contract', async function() {
+        let initialAddressBalance = await this.web3.eth.getBalance(this.contract.address);
 
-      await this.contract.mintTo.call(
-        this.toAddress, 1337, this.tokenUri, nonce, v, r, s, this.transactionMsg
-      ).should.be.rejectedWith('revert');
-    });
+        const nonce = 8;
+        const { v, r, s } = await generateSignature(
+          this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
+        );
 
-    it('rejects when beneficiary is not active', async function() {
-      const beneficiaryId = 1338;
-      const nonce = 4;
-      const { v, r, s } = await generateSignature(
-        this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
-      );
+        await this.contract.mintTo(
+          this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
+        ).then(async (result) => {
+          let newAddressBalance = await this.web3.eth.getBalance(this.contract.address);
+          assert.equal(newAddressBalance - initialAddressBalance, 5000);
+        });
+      });
 
-      await this.contract.addBeneficiary(beneficiaryId, accounts[3]).then(async (result) => {
-        await this.contract.deactivateBeneficiary(beneficiaryId).then(async (result) => {
-          await this.contract.mintTo.call(
-            this.toAddress, beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
-          ).should.be.rejectedWith('revert');
+      it('updates the beneficiary total', async function() {
+        let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
+        let initialTotal = retrievedBeneficiary[3].toNumber();
+
+        const nonce = 9;
+        const { v, r, s } = await generateSignature(
+          this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
+        );
+
+        await this.contract.mintTo(
+          this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
+        ).then(async (result) => {
+          let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
+          assert.equal(retrievedBeneficiary[3].toNumber() - initialTotal, 95000);
         });
       });
     });
 
-    describe('rejects when the ECDSA signature is invalid', async function() {
-      it('rejects when a different address signed the message', async function() {
-        const nonce = 5;
+    describe('rejection criteria', async function() {
+      it('rejects when no payment is provided', async function() {
+        const nonce = 1;
         const { v, r, s } = await generateSignature(
-          this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, accounts[1]
-        );
-
-        await this.contract.mintTo.call(
-          this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
-        ).should.be.rejectedWith('revert');
-      });
-
-      it('rejects when the ECDSA signature is for another token uri', async function() {
-        const nonce = 6;
-        const { v, r, s } = await generateSignature(
-          this.toAddress, 'QmSdwSq5hf2iLweoijSqKHPod5J7REcn3WErAnTxcYVXU3', this.beneficiaryId, nonce, this.msgValue, this.minterAddress
+          this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
         );
 
         await this.contract.mintTo.call(
           this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s,
           {
             from: this.toAddress,
-            value: 100000,
           }
         ).should.be.rejectedWith('revert');
+      });
+
+      it('rejects when the contract is paused', async function() {
+        const nonce = 1;
+        const { v, r, s } = await generateSignature(
+          this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
+        );
+
+        await this.contract.pause();
+
+        await this.contract.mintTo.call(
+          this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
+        ).should.be.rejectedWith('revert');
+
+
+        await this.contract.unpause();
+      });
+
+      it('rejects when the nonce has been used', async function() {
+        const nonce = 2;
+        const { v, r, s } = await generateSignature(
+          this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
+        );
+
+        await this.contract.mintTo(
+          this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
+        ).then(async (result) => {
+          await this.contract.mintTo(
+            this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s,
+            {
+              from: this.toAddress,
+              value: 100000,
+            }
+          ).should.be.rejectedWith('revert');
+        });
+      });
+
+      it('rejects when the beneficiary address is not present', async function() {
+        const nonce = 3;
+        const { v, r, s } = await generateSignature(
+          this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
+        );
+
+        await this.contract.mintTo.call(
+          this.toAddress, 1337, this.tokenUri, nonce, v, r, s, this.transactionMsg
+        ).should.be.rejectedWith('revert');
+      });
+
+      it('rejects when beneficiary is not active', async function() {
+        const beneficiaryId = 1338;
+        const nonce = 4;
+        const { v, r, s } = await generateSignature(
+          this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
+        );
+
+        await this.contract.addBeneficiary(beneficiaryId, accounts[3]).then(async (result) => {
+          await this.contract.deactivateBeneficiary(beneficiaryId).then(async (result) => {
+            await this.contract.mintTo.call(
+              this.toAddress, beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
+            ).should.be.rejectedWith('revert');
+          });
+        });
+      });
+
+      describe('rejects when the ECDSA signature is invalid', async function() {
+        it('rejects when a different address signed the message', async function() {
+          const nonce = 5;
+          const { v, r, s } = await generateSignature(
+            this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, accounts[1]
+          );
+
+          await this.contract.mintTo.call(
+            this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
+          ).should.be.rejectedWith('revert');
+        });
+
+        it('rejects when the ECDSA signature is for another token uri', async function() {
+          const nonce = 6;
+          const { v, r, s } = await generateSignature(
+            this.toAddress, 'QmSdwSq5hf2iLweoijSqKHPod5J7REcn3WErAnTxcYVXU3', this.beneficiaryId, nonce, this.msgValue, this.minterAddress
+          );
+
+          await this.contract.mintTo.call(
+            this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s,
+            {
+              from: this.toAddress,
+              value: 100000,
+            }
+          ).should.be.rejectedWith('revert');
+        });
       });
     });
   });
