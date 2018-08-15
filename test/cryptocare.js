@@ -81,6 +81,7 @@ contract('CryptoCare', (accounts) => {
       it('transfer the total minus CryptoCare rate to the beneficiary', async function() {
         let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
         let initialAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
+        let rate = 5;
 
         const nonce = 7;
         const { v, r, s } = await generateSignature(
@@ -92,7 +93,7 @@ contract('CryptoCare', (accounts) => {
         ).then(async (result) => {
           let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
           let newAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
-          assert.equal(newAddressBalance - initialAddressBalance, 95000);
+          assert.equal(newAddressBalance - initialAddressBalance, ((100 - rate) * this.msgValue) / 100);
         });
       });
 
@@ -127,6 +128,28 @@ contract('CryptoCare', (accounts) => {
           let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
           assert.equal(retrievedBeneficiary[3].toNumber() - initialTotal, 95000);
         });
+      });
+
+      it('uses the override rate, if active', async function() {
+        let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
+        let initialAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
+        let rate = 3;
+        await this.contract.updateOverrideRate(true, rate);
+
+        const nonce = 10;
+        const { v, r, s } = await generateSignature(
+          this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
+        );
+
+        await this.contract.mintTo(
+          this.toAddress, this.beneficiaryId, this.tokenUri, nonce, v, r, s, this.transactionMsg
+        ).then(async (result) => {
+          let retrievedBeneficiary = await this.contract.beneficiaries.call(this.beneficiaryId);
+          let newAddressBalance = await this.web3.eth.getBalance(retrievedBeneficiary[0]);
+          assert.equal(newAddressBalance - initialAddressBalance, ((100 - rate) * this.msgValue) / 100);
+        });
+
+        await this.contract.updateOverrideRate(false, 5);
       });
     });
 
