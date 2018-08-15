@@ -385,6 +385,29 @@ contract('CryptoCare', (accounts) => {
     });
   });
 
+  describe('withdraw', () => {
+    it('withdraws funds to owner', async function() {
+      const initialContractBalance = await this.web3.eth.getBalance(this.contract.address);
+
+      await this.contract.withdraw(10);
+
+      const newContractBalance = await this.web3.eth.getBalance(this.contract.address);
+      assert.equal(initialContractBalance - 10, newContractBalance);
+    });
+
+    it('rejects when non-owner calls', async function() {
+      await this.contract.withdraw(
+        10, { from: accounts[1] }
+      ).should.be.rejectedWith('revert');
+    });
+
+    it('rejects when paused', async function() {
+      await this.contract.pause();
+      await this.contract.withdraw(10).should.be.rejectedWith('revert');
+      await this.contract.unpause();
+    });
+  });
+
   describe('updateMinter', () => {
     beforeEach(async function () {
       this.beneficiaryAddress = accounts[1];

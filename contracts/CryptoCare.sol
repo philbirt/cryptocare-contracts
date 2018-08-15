@@ -92,6 +92,16 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
     minterAddress = _addr;
   }
 
+  /**
+  * @dev Allows owner to withdraw funds in contract
+  * @param _amount the amount to withdraw
+  */
+  function withdraw(uint _amount) public onlyOwner whenNotPaused returns(bool) {
+    require(_amount < address(this).balance);
+    owner.transfer(_amount);
+    return true;
+  }
+
   function tokensOf(address _owner) external view returns (uint256[] _ownedTokens) {
     require(_owner != address(0));
     _ownedTokens = ownedTokens[_owner];
