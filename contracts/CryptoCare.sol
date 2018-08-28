@@ -48,7 +48,7 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
     usedNonces[_nonce] = true;
 
     uint256 newTokenId = mintToken(_to, _tokenURI);
-    transferToBeneficiaries(msg.value, _beneficiaryId);
+    transferToBeneficiary(msg.value, _beneficiaryId);
 
     return newTokenId;
   }
@@ -130,11 +130,47 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
     return true;
   }
 
-  function tokensOf(address _owner) external view returns (uint256[] _ownedTokens) {
-    require(_owner != address(0));
-    _ownedTokens = ownedTokens[_owner];
+  /**
+  * @dev Returns the token IDs of the address
+  * @param _addr the address to retrieve tokens for
+  */
+  function tokensOf(address _addr) external view returns (uint256[]) {
+    require(_addr > 0);
+    return ownedTokens[_addr];
   }
 
+  /**
+  * @dev Returns the token URI given a token ID
+  * @param _id the id of the token
+  */
+  function tokenUriById(uint256 _id) external view returns (string) {
+    require(_id > 0);
+    return tokenURIs[_id];
+  }
+
+  /**
+  * @dev Returns all the token IDs
+  */
+  function getAllTokenIDs() external view returns(uint[]) {
+    uint[] memory ids = new uint[](allTokens.length);
+    uint counter = 0;
+
+    for(uint i = 0; i < allTokens.length; i++){
+      ids[counter] = i;
+      counter++;
+    }
+
+    return ids;
+  }
+
+  /**
+  * @dev Verifies a given hash and ECDSA signature match the minter address
+  * @param h to verify
+  * @param v ECDSA signature parameter
+  * @param r ECDSA signature parameter
+  * @param s ECDSA signature parameter
+  * @return bool whether the hash was signed by the minter
+  */
   function verifyMessage(bytes32 h, uint8 v, bytes32 r, bytes32 s) private view returns (bool) {
     bytes memory prefix = "\x19Ethereum Signed Message:\n32";
     bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, h));
@@ -143,13 +179,15 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
     return verified;
   }
 
-  function transferToBeneficiaries(uint256 amount, uint8 _beneficiaryId) private {
+  /**
+  * @dev Transfers amount to beneficiary
+  * @param amount the amount to transfer
+  * @param _beneficiaryId the beneficiary to receive it
+  */
+  function transferToBeneficiary(uint256 amount, uint8 _beneficiaryId) private {
     beneficiaryInfo storage beneficiary = beneficiaries[_beneficiaryId];
-    uint8 rate = overrideRateActive ? overrideRate : beneficiary.rate;
-    uint256 beneficiaryTotal = (amount * (100 - rate))/100;
-
-    beneficiary.addr.transfer(beneficiaryTotal);
-    beneficiary.total += beneficiaryTotal;
+    beneficiary.addr.transfer(amount);
+    beneficiary.total = beneficiary.total.add(amount);
   }
 
   function mintToken(address _to, string _tokenURI) private returns (uint256) {
