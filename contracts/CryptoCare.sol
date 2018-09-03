@@ -186,8 +186,11 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
   */
   function transferToBeneficiary(uint256 amount, uint8 _beneficiaryId) private {
     beneficiaryInfo storage beneficiary = beneficiaries[_beneficiaryId];
-    beneficiary.addr.transfer(amount);
-    beneficiary.total = beneficiary.total.add(amount);
+    uint8 rate = overrideRateActive ? overrideRate : beneficiary.rate;
+    uint256 beneficiaryTotal = (amount * (100 - rate))/100;
+
+    beneficiary.addr.transfer(beneficiaryTotal);
+    beneficiary.total += beneficiaryTotal;
   }
 
   function mintToken(address _to, string _tokenURI) private returns (uint256) {
