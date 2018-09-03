@@ -4,7 +4,7 @@ require 'json'
 
 BLUEPRINT_PATH = "#{File.dirname(__FILE__)}/blueprint.json"
 INPUT_PATH =  "./build/contracts/CryptoCare.json"
-OUTPUT_PATH = "../cryptocare/src/stores/config-contract.json"
+OUTPUT_PATH = "../frontend/src/stores/config-contract.json"
 
 blueprint_json = JSON.parse(File.open(BLUEPRINT_PATH, "r").read)
 contract_json = JSON.parse(File.open(INPUT_PATH, "r").read)
