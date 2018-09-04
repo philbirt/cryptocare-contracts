@@ -15,7 +15,6 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
   struct beneficiaryInfo {
     address addr;
     bool isActive;
-    uint8 rate;
     uint256 total;
   }
 
@@ -26,10 +25,7 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
   uint8 public overrideRate;
   bool public overrideRateActive;
 
-  constructor() ERC721Token("CryptoCare", "CARE") public {
-    overrideRate = 5;
-    overrideRateActive = true;
-  }
+  constructor() ERC721Token("CryptoCare", "CARE") public {}
 
   /**
   * @dev Mints a token to an address with a tokenURI
@@ -40,7 +36,7 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
   * @param _nonce nonce for the transaction
   */
   function mintTo(
-    address _to, uint8 _beneficiaryId, string _tokenURI, uint256 _nonce, uint8 v, bytes32 r, bytes32 s
+    address _to, uint8 _beneficiaryId, string _tokenURI, uint256 _nonce, uint8 _rate, uint8 v, bytes32 r, bytes32 s
   ) public payable whenNotPaused returns (uint256) {
     require(msg.value > 0);
     require(!usedNonces[_nonce]);
@@ -50,7 +46,7 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
     usedNonces[_nonce] = true;
 
     uint256 newTokenId = mintToken(_to, _tokenURI);
-    transferToBeneficiary(msg.value, _beneficiaryId);
+    transferToBeneficiary(msg.value, _beneficiaryId, _rate);
 
     emit Adoption(newTokenId, _to, _tokenURI, _beneficiaryId, msg.value);
 
@@ -64,20 +60,8 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
   */
   function addBeneficiary(uint8 beneficiaryId, address addr) public onlyOwner whenNotPaused {
     require(beneficiaries[beneficiaryId].addr == 0);
-    beneficiaries[beneficiaryId] = beneficiaryInfo(addr, true, 5, 0);
+    beneficiaries[beneficiaryId] = beneficiaryInfo(addr, true, 0);
     emit BeneficiaryAdded(beneficiaryId, addr);
-  }
-
-  /**
-  * @dev Updates the rate witheld for a beneficiary
-  * @param beneficiaryId the identifier for the beneficiary address
-  */
-  function updateBeneficiaryRate(uint8 beneficiaryId, uint8 rate) public onlyOwner whenNotPaused {
-    require(beneficiaries[beneficiaryId].addr > 0);
-    require(rate < 100);
-
-    beneficiaries[beneficiaryId].rate = rate;
-    emit BeneficiaryRateUpdated(beneficiaryId, rate);
   }
 
   /**
@@ -188,9 +172,9 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
   * @param amount the amount to transfer
   * @param _beneficiaryId the beneficiary to receive it
   */
-  function transferToBeneficiary(uint256 amount, uint8 _beneficiaryId) private {
+  function transferToBeneficiary(uint256 amount, uint8 _beneficiaryId, uint8 _rate) private {
     beneficiaryInfo storage beneficiary = beneficiaries[_beneficiaryId];
-    uint8 rate = overrideRateActive ? overrideRate : beneficiary.rate;
+    uint8 rate = overrideRateActive ? overrideRate : _rate;
     uint256 beneficiaryTotal = (amount * (100 - rate))/100;
 
     beneficiary.addr.transfer(beneficiaryTotal);
