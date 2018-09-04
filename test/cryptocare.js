@@ -477,8 +477,7 @@ contract('CryptoCare', (accounts) => {
 
   describe('updateMinter', () => {
     beforeEach(async function () {
-      this.beneficiaryAddress = accounts[1];
-      this.minterAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
+      this.minterAddress = accounts[1];
     });
 
     it('updates the minter address', async function() {
