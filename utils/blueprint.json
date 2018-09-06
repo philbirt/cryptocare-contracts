@@ -1,0 +1,14 @@
+{  
+  "networks": {  
+    "1": {
+      "contractAddress": ""
+    },
+    "4": {
+      "contractAddress": ""
+    },
+    "4447": {
+      "contractAddress": ""
+    }
+  },
+  "contractAbi": ""
+}
