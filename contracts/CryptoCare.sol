@@ -5,7 +5,7 @@ import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
 
 contract CryptoCare is ERC721Token, Ownable, Pausable {
-  event Adoption(uint256 tokenId, address indexed toAddress, string tokenURI, uint8 beneficiaryId, uint256 price);
+  event Adoption(uint256 tokenId, address indexed toAddress, string tokenURI, uint8 beneficiaryId, uint256 price, uint8 rate);
 
   event BeneficiaryAdded(uint8 beneficiaryId, address addr);
   event BeneficiaryRateUpdated(uint8 beneficiaryId, uint8 rate);
@@ -48,7 +48,7 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
     uint256 newTokenId = mintToken(_to, _tokenURI);
     transferToBeneficiary(msg.value, _beneficiaryId, _rate);
 
-    emit Adoption(newTokenId, _to, _tokenURI, _beneficiaryId, msg.value);
+    emit Adoption(newTokenId, _to, _tokenURI, _beneficiaryId, msg.value, _rate);
 
     return newTokenId;
   }

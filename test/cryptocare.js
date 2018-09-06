@@ -48,7 +48,7 @@ contract('CryptoCare', (accounts) => {
       this.rate = 5;
     });
 
-    it('mints a new token with a uri and token id', async function() {
+    it('mints a new token with a uri and token id, and emits events', async function() {
       const nonce = 0;
       const { v, r, s } = await generateSignature(
         this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterAddress
@@ -62,6 +62,16 @@ contract('CryptoCare', (accounts) => {
 
         assert.equal(tokenId.toNumber(), 1);
         assert.equal(tokenUri, this.tokenUri);
+
+
+        truffleAssert.eventEmitted(result, 'Adoption', (ev) => {
+          return ev.tokenId.toNumber() === tokenId.toNumber() &&
+            ev.toAddress === this.toAddress &&
+            ev.tokenURI === tokenUri &&
+            ev.beneficiaryId.toNumber() === this.beneficiaryId &&
+            ev.price.toNumber() === this.msgValue &&
+            ev.rate.toNumber() === 5
+        });
 
         truffleAssert.eventEmitted(result, 'Transfer', (ev) => {
           return ev._to === this.toAddress && ev._tokenId.toNumber() === tokenId.toNumber();
