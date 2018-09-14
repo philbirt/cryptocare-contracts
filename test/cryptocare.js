@@ -310,7 +310,7 @@ contract('CryptoCare', (accounts) => {
 
   describe('deactivateBeneficiary', () => {
     beforeEach(async function () {
-      this.beneficiaryAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
+      this.beneficiaryAddress = '0xafBCC39f474baf9596C1135522810d5f409DDE0F';
     });
 
     it('deactivates an existing beneficiary and emits event', async function() {
@@ -365,7 +365,7 @@ contract('CryptoCare', (accounts) => {
 
   describe('activateBeneficiary', () => {
     beforeEach(async function () {
-      this.beneficiaryAddress = 0xafBCC39f474baf9596C1135522810d5f409DDE0F;
+      this.beneficiaryAddress = '0xafBCC39f474baf9596C1135522810d5f409DDE0F';
     });
 
     it('activates an existing deactivated beneficiary and emits event', async function() {
