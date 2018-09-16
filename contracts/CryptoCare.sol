@@ -1,10 +1,9 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.21;
 
-import "zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
-import "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-zos/contracts/token/ERC721/MintableERC721Token.sol";
 import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
 
-contract CryptoCare is ERC721Token, Ownable, Pausable {
+contract CryptoCare is MintableERC721Token, Pausable {
   event Adoption(uint256 tokenId, address indexed toAddress, string tokenURI, uint8 beneficiaryId, uint256 price, uint8 rate);
 
   event BeneficiaryAdded(uint8 beneficiaryId, address addr);
@@ -25,7 +24,9 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
   uint8 public overrideRate;
   bool public overrideRateActive;
 
-  constructor() ERC721Token("CryptoCare", "CARE") public {}
+  function initialize() isInitializer("MintableERC721Token", "1.9.0") public {
+    MintableERC721Token.initialize("CryptoCare", "CARE");
+  }
 
   /**
   * @dev Mints a token to an address with a tokenURI
@@ -116,39 +117,6 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
     require(_amount < address(this).balance);
     owner.transfer(_amount);
     return true;
-  }
-
-  /**
-  * @dev Returns the token IDs of the address
-  * @param _addr the address to retrieve tokens for
-  */
-  function tokensOf(address _addr) external view returns (uint256[]) {
-    require(_addr > 0);
-    return ownedTokens[_addr];
-  }
-
-  /**
-  * @dev Returns the token URI given a token ID
-  * @param _id the id of the token
-  */
-  function tokenUriById(uint256 _id) external view returns (string) {
-    require(_id > 0);
-    return tokenURIs[_id];
-  }
-
-  /**
-  * @dev Returns all the token IDs
-  */
-  function getAllTokenIDs() external view returns(uint[]) {
-    uint[] memory ids = new uint[](allTokens.length);
-    uint counter = 0;
-
-    for(uint i = 0; i < allTokens.length; i++){
-      ids[counter] = i;
-      counter++;
-    }
-
-    return ids;
   }
 
   /**
