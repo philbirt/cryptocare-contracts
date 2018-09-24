@@ -314,7 +314,7 @@ contract('CryptoCare', (accounts) => {
     });
 
     it('deactivates an existing beneficiary and emits event', async function() {
-      const beneficiaryId = 10;
+      const beneficiaryId = 14;
       await this.contract.addBeneficiary(beneficiaryId, this.beneficiaryAddress);
 
       await this.contract.deactivateBeneficiary(beneficiaryId).then(async (result) => {
