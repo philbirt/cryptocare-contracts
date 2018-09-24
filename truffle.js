@@ -14,7 +14,8 @@ module.exports = {
       provider: function() {
         return new HDWalletProvider(rinkebyConfig['mnemonic'], rinkebyConfig["api"]);
       },
-      network_id: 4
+      network_id: 4,
+      skipDryRun: true
     }
   }
 };

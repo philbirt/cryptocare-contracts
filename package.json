@@ -40,8 +40,6 @@
     "recursive-readdir": "2.1.0",
     "strip-ansi": "3.0.1",
     "style-loader": "0.13.1",
-    "truffle-contract": "^1.1.8",
-    "truffle-solidity-loader": "0.0.8",
     "url-loader": "0.5.7",
     "webpack": "1.14.0",
     "webpack-dev-server": "^3.1.5",
@@ -58,9 +56,9 @@
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "truffle-assertions": "^0.3.1",
-    "truffle-hdwallet-provider": "0.0.6",
-    "web3": "^1.0.0-beta.35",
-    "web3-utils": "^1.0.0-beta.35"
+    "truffle-hdwallet-provider": "^1.0.0-web3one.0",
+    "web3": "^1.0.0-beta.36",
+    "web3-utils": "^1.0.0-beta.36"
   },
   "scripts": {
     "start": "node scripts/start.js",
