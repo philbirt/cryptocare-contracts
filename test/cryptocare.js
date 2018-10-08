@@ -6,7 +6,7 @@ require('chai')
   .should();
 const truffleAssert = require('truffle-assertions');
 
-const CryptoCare = artifacts.require('./CryptoCare.sol');
+const CryptoCareMinter = artifacts.require('./CryptoCareMinter.sol');
 
 function splitSignature(web3, signature) {
   signature = signature.slice(2);
@@ -31,11 +31,11 @@ async function generateSignature(toAddress, tokenUri, beneficiaryId, nonce, msgV
   return splitSignature(web3, signature);
 }
 
-contract('CryptoCare', (accounts) => {
+contract('CryptoCareMinter', (accounts) => {
   beforeEach(async function () {
     this.web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:9545'));
     this.minterAddress = accounts[0];
-    this.contract = await CryptoCare.deployed();
+    this.contract = await CryptoCareMinter.deployed();
   });
 
   describe('mintTo', () => {
@@ -63,7 +63,6 @@ contract('CryptoCare', (accounts) => {
         assert.equal(tokenId.toNumber(), 1);
         assert.equal(tokenUri, this.tokenUri);
 
-
         truffleAssert.eventEmitted(result, 'Adoption', (ev) => {
           return ev.tokenId.toNumber() === tokenId.toNumber() &&
             ev.toAddress === this.toAddress &&
@@ -71,10 +70,6 @@ contract('CryptoCare', (accounts) => {
             ev.beneficiaryId.toNumber() === this.beneficiaryId &&
             ev.price.toNumber() === this.msgValue &&
             ev.rate.toNumber() === 5
-        });
-
-        truffleAssert.eventEmitted(result, 'Transfer', (ev) => {
-          return ev._to === this.toAddress && ev._tokenId.toNumber() === tokenId.toNumber();
         });
       });
     });

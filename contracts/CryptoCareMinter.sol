@@ -5,7 +5,7 @@ import "zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
 
-contract CryptoCare is Ownable, Pausable {
+contract CryptoCareMinter is Ownable, Pausable {
     event Adoption(uint256 tokenId, address indexed toAddress, string tokenURI, uint8 beneficiaryId, uint256 price, uint8 rate);
 
     event BeneficiaryAdded(uint8 beneficiaryId, address addr);

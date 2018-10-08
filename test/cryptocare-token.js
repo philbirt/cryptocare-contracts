@@ -6,7 +6,6 @@ require('chai')
   .should();
 const truffleAssert = require('truffle-assertions');
 
-const CryptoCare = artifacts.require('./CryptoCare.sol');
 const CryptoCareToken = artifacts.require('./CryptoCareToken.sol');
 
 contract('CryptoCareToken', (accounts) => {
@@ -14,21 +13,38 @@ contract('CryptoCareToken', (accounts) => {
     this.web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:9545'));
 
     this.contract = await CryptoCareToken.deployed();
+    this.oldMinterAddress = await this.contract.minterAddress();
+
+    this.contract.updateMinter(accounts[5]);
     this.minterAddress = await this.contract.minterAddress();
   });
 
+  afterEach(async function() {
+    this.contract.updateMinter(this.oldMinterAddress);
+  })
+
   describe('mintToken', () => {
-    it('mints a token from the minter address', async function() {
-      await this.contract.mintToken.call(
+    it('mints a token from the minter address and emits event', async function() {
+      await this.contract.mintToken(
         accounts[0], "testURI", { from: this.minterAddress }
-      );
+      ).then(async (result) => {
+        const tokenId = await this.contract.tokenOfOwnerByIndex(accounts[0], 0);
+        const tokenUri = await this.contract.tokenURI(tokenId);
+
+        assert.equal(tokenId.toNumber(), 1);
+        assert.equal(tokenUri, "testURI");
+
+        truffleAssert.eventEmitted(result, 'Transfer', (ev) => {
+          return ev._to === accounts[0] && ev._tokenId.toNumber() === tokenId.toNumber();
+        });
+      });
     });
 
     it('rejects when paused', async function() {
       await this.contract.pause();
 
       await this.contract.mintToken.call(
-        accounts[0], "testURI"
+        accounts[0], "testURI", { from: this.minterAddress }
       ).should.be.rejectedWith('revert');
 
       await this.contract.unpause();
