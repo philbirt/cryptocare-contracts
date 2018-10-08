@@ -480,6 +480,35 @@ contract('CryptoCare', (accounts) => {
     });
   });
 
+  describe('updateTokenContract', () => {
+    it('updates the token contract address', async function() {
+      let oldContractAddress = await this.contract.tokenContract();
+      let newContractAddress = '0x8A9Df80fA754Ea6cf7241aF654685c21a87AF22e';
+
+      await this.contract.updateTokenContract(newContractAddress);
+      const retrievedContractAddress = await this.contract.tokenContract();
+      assert.equal(retrievedContractAddress, newContractAddress);
+
+      await this.contract.updateTokenContract(oldContractAddress);
+    });
+
+    it('rejects when paused', async function() {
+      await this.contract.pause();
+
+      await this.contract.updateTokenContract.call(
+        this.minterAddress, { from: accounts[0] }
+      ).should.be.rejectedWith('revert');
+
+      await this.contract.unpause();
+    });
+
+    it('rejects when attempting to call from non-owner address', async function() {
+      await this.contract.updateTokenContract.call(
+        this.minterAddress, { from: accounts[1] }
+      ).should.be.rejectedWith('revert');
+    });
+  });
+
   describe('updateOverrideRate', () => {
     beforeEach(async function () {
       this.newOverrideRate = 3;

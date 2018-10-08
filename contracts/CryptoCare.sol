@@ -1,10 +1,11 @@
 pragma solidity 0.4.25;
 
+import "./CryptoCareToken.sol";
 import "zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
 
-contract CryptoCare is ERC721Token, Ownable, Pausable {
+contract CryptoCare is Ownable, Pausable {
     event Adoption(uint256 tokenId, address indexed toAddress, string tokenURI, uint8 beneficiaryId, uint256 price, uint8 rate);
 
     event BeneficiaryAdded(uint8 beneficiaryId, address addr);
@@ -25,7 +26,7 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
     uint8 public overrideRate;
     bool public overrideRateActive;
 
-    constructor() public ERC721Token("CryptoCare", "CARE") {}
+    CryptoCareToken public tokenContract;
 
     /**
     * @dev Mints a token to an address with a tokenURI
@@ -45,7 +46,7 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
         require(verifyMessage(keccak256(abi.encodePacked(_to, _tokenURI, _beneficiaryId, _nonce, msg.value)), v, r, s));
         usedNonces[_nonce] = true;
 
-        uint256 newTokenId = mintToken(_to, _tokenURI);
+        uint256 newTokenId = CryptoCareToken(tokenContract).mintToken(_to, _tokenURI);
         transferToBeneficiary(msg.value, _beneficiaryId, _rate);
 
         emit Adoption(newTokenId, _to, _tokenURI, _beneficiaryId, msg.value, _rate);
@@ -98,6 +99,14 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
     }
 
     /**
+    * @dev Updates the token contract address
+    * @param _tokenContractAddress the new token contract address
+    */
+    function updateTokenContract(address _tokenContractAddress) public onlyOwner whenNotPaused {
+        tokenContract = CryptoCareToken(_tokenContractAddress);
+    }
+
+    /**
     * @dev Updates override rate and if it is active
     * @param _active whether the override is active or not
     * @param _rate the new override rate
@@ -116,6 +125,14 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
         require(_amount < address(this).balance);
         owner.transfer(_amount);
         return true;
+    }
+
+    function tokenURI(uint256 _tokenId) public view returns (string) {
+        return CryptoCareToken(tokenContract).tokenURI(_tokenId);
+    }
+
+    function tokenOfOwnerByIndex(address _owner, uint256 _index) public view returns (uint256) {
+        return CryptoCareToken(tokenContract).tokenOfOwnerByIndex(_owner, _index);
     }
 
     /**
@@ -146,20 +163,5 @@ contract CryptoCare is ERC721Token, Ownable, Pausable {
 
         beneficiary.addr.transfer(beneficiaryTotal);
         beneficiary.total += beneficiaryTotal;
-    }
-
-    function mintToken(address _to, string _tokenURI) private returns (uint256) {
-        uint256 newTokenId = _getNextTokenId();
-        _mint(_to, newTokenId);
-        _setTokenURI(newTokenId, _tokenURI);
-        return newTokenId;
-    }
-
-    /**
-    * @dev calculates the next token ID based on totalSupply
-    * @return uint256 for the next token ID
-    */
-    function _getNextTokenId() private view returns (uint256) {
-        return totalSupply().add(1);
     }
 }
