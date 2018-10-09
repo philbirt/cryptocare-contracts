@@ -59,29 +59,33 @@ contract('CryptoCareToken', (accounts) => {
 
   describe('updateMinter', () => {
     it('updates the minter address', async function() {
-      let oldMinterAddress = await this.contract.minterAddress();
-
       await this.contract.updateMinter(accounts[0]);
       const newMinterAddress = await this.contract.minterAddress();
       assert.equal(newMinterAddress, accounts[0]);
 
-      await this.contract.updateMinter(oldMinterAddress);
+      await this.contract.updateMinter(this.minterAddress);
     });
 
-    it('rejects when paused', async function() {
+    it('rejects and does not update when paused', async function() {
       await this.contract.pause();
 
       await this.contract.updateMinter.call(
         this.minterAddress, { from: accounts[0] }
       ).should.be.rejectedWith('revert');
+
+      const newMinterAddress = await this.contract.minterAddress();
+      assert.equal(newMinterAddress, this.minterAddress);
     
       await this.contract.unpause();
     });
 
-    it('rejects when attempting to call from non-owner address', async function() {
+    it('rejects and does not update when attempting to call from non-owner address', async function() {
       await this.contract.updateMinter.call(
         this.minterAddress, { from: accounts[1] }
       ).should.be.rejectedWith('revert');
+
+      const newMinterAddress = await this.contract.minterAddress();
+      assert.equal(newMinterAddress, this.minterAddress);
     });
   });
 });
