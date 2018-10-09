@@ -274,16 +274,6 @@ contract('CryptoCareMinter', (accounts) => {
       });
     });
 
-    it('rejects when paused', async function() {
-      await this.contract.pause();
-
-      await this.contract.addBeneficiary.call(
-        100, this.beneficiaryAddress
-      ).should.be.rejectedWith('revert');
-
-      await this.contract.unpause();
-    });
-
     it('rejects when attempting to call from non-owner address', async function() {
       await this.contract.addBeneficiary.call(
         101, this.beneficiaryAddress, { from: accounts[1] }
@@ -321,19 +311,6 @@ contract('CryptoCareMinter', (accounts) => {
           return ev.beneficiaryId.toNumber() === beneficiaryId
         });
       });
-    });
-
-    it('rejects when paused', async function() {
-      const beneficiaryId = 11;
-      await this.contract.addBeneficiary(beneficiaryId, this.beneficiaryAddress);
-
-      await this.contract.pause();
-
-      await this.contract.deactivateBeneficiary.call(
-        this.beneficiaryAddress
-      ).should.be.rejectedWith('revert');
-
-      await this.contract.unpause();
     });
 
     it('rejects when attempting to call from non-owner address', async function() {
@@ -378,20 +355,6 @@ contract('CryptoCareMinter', (accounts) => {
           });
         });
       });
-    });
-
-    it('rejects when paused', async function() {
-      const beneficiaryId = 21;
-      await this.contract.addBeneficiary(beneficiaryId, this.beneficiaryAddress);
-      await this.contract.deactivateBeneficiary(beneficiaryId);
-
-      this.contract.pause();
-
-      await this.contract.activateBeneficiary.call(
-        this.beneficiaryAddress
-      ).should.be.rejectedWith('revert');
-
-      this.contract.unpause();
     });
 
     it('rejects when attempting to call from non-owner address', async function() {
@@ -458,16 +421,6 @@ contract('CryptoCareMinter', (accounts) => {
       await this.contract.updateMinter(oldMinterAddress);
     });
 
-    it('rejects when paused', async function() {
-      await this.contract.pause();
-
-      await this.contract.updateMinter.call(
-        this.minterAddress, { from: accounts[1] }
-      ).should.be.rejectedWith('revert');
-    
-      await this.contract.unpause();
-    });
-
     it('rejects when attempting to call from non-owner address', async function() {
       await this.contract.updateMinter.call(
         this.minterAddress, { from: accounts[1] }
@@ -485,16 +438,6 @@ contract('CryptoCareMinter', (accounts) => {
       assert.equal(retrievedContractAddress, newContractAddress);
 
       await this.contract.updateTokenContract(oldContractAddress);
-    });
-
-    it('rejects when paused', async function() {
-      await this.contract.pause();
-
-      await this.contract.updateTokenContract.call(
-        this.minterAddress, { from: accounts[0] }
-      ).should.be.rejectedWith('revert');
-
-      await this.contract.unpause();
     });
 
     it('rejects when attempting to call from non-owner address', async function() {
@@ -518,16 +461,6 @@ contract('CryptoCareMinter', (accounts) => {
       });
 
       await this.contract.updateOverrideRate(true, oldOverrideRate);
-    });
-
-    it('rejects when paused', async function() {
-      await this.contract.pause();
-
-      await this.contract.updateOverrideRate.call(
-        false, this.newOverrideRate
-      ).should.be.rejectedWith('revert');
-
-      await this.contract.unpause();
     });
 
     it('rejects when attempting to call from non-owner address', async function() {

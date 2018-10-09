@@ -59,7 +59,7 @@ contract CryptoCareMinter is Ownable, Pausable {
     * @param beneficiaryId the identifier for the beneficiary address
     * @param addr the address of the beneficiary
     */
-    function addBeneficiary(uint8 beneficiaryId, address addr) public onlyOwner whenNotPaused {
+    function addBeneficiary(uint8 beneficiaryId, address addr) public onlyOwner {
         require(beneficiaries[beneficiaryId].addr == 0);
         beneficiaries[beneficiaryId] = beneficiaryInfo(addr, true, 0);
         emit BeneficiaryAdded(beneficiaryId, addr);
@@ -69,7 +69,7 @@ contract CryptoCareMinter is Ownable, Pausable {
     * @dev Activates an existing beneficiary in the mapping
     * @param beneficiaryId the identifier for the beneficiary address
     */
-    function activateBeneficiary(uint8 beneficiaryId) public onlyOwner whenNotPaused {
+    function activateBeneficiary(uint8 beneficiaryId) public onlyOwner {
         require(beneficiaries[beneficiaryId].addr > 0);
         require(!beneficiaries[beneficiaryId].isActive);
 
@@ -81,7 +81,7 @@ contract CryptoCareMinter is Ownable, Pausable {
     * @dev Deactivates a beneficiary from the mapping
     * @param beneficiaryId the identifier for the beneficiary address
     */
-    function deactivateBeneficiary(uint8 beneficiaryId) public onlyOwner whenNotPaused {
+    function deactivateBeneficiary(uint8 beneficiaryId) public onlyOwner {
         require(beneficiaries[beneficiaryId].addr > 0);
         require(beneficiaries[beneficiaryId].isActive);
 
@@ -93,7 +93,7 @@ contract CryptoCareMinter is Ownable, Pausable {
     * @dev Updates the minter address
     * @param _addr the new minter address
     */
-    function updateMinter(address _addr) public onlyOwner whenNotPaused {
+    function updateMinter(address _addr) public onlyOwner {
         require(_addr > 0);
         minterAddress = _addr;
     }
@@ -102,7 +102,7 @@ contract CryptoCareMinter is Ownable, Pausable {
     * @dev Updates the token contract address
     * @param _tokenContractAddress the new token contract address
     */
-    function updateTokenContract(address _tokenContractAddress) public onlyOwner whenNotPaused {
+    function updateTokenContract(address _tokenContractAddress) public onlyOwner {
         tokenContract = CryptoCareToken(_tokenContractAddress);
     }
 
@@ -111,7 +111,7 @@ contract CryptoCareMinter is Ownable, Pausable {
     * @param _active whether the override is active or not
     * @param _rate the new override rate
     */
-    function updateOverrideRate(bool _active, uint8 _rate) public onlyOwner whenNotPaused {
+    function updateOverrideRate(bool _active, uint8 _rate) public onlyOwner {
         require(_rate < 100);
         overrideRateActive = _active;
         overrideRate = _rate;
@@ -120,7 +120,7 @@ contract CryptoCareMinter is Ownable, Pausable {
     /**
     * @dev Allows owner to withdraw funds in contract
     */
-    function withdraw() public onlyOwner whenNotPaused {
+    function withdraw() public onlyOwner {
         owner.transfer(address(this).balance);
     }
 
