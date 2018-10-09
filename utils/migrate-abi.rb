@@ -3,7 +3,7 @@
 require 'json'
 
 BLUEPRINT_PATH = "#{File.dirname(__FILE__)}/blueprint.json"
-INPUT_PATH =  "./build/contracts/CryptoCare.json"
+INPUT_PATH =  "./build/contracts/CryptoCareMinterV2.json"
 
 FRONTEND_OUTPUT_PATH = "../frontend/src/stores/config-contract.json"
 NODE_OUTPUT_PATH = "../node-backend/config/contract-config.json"
