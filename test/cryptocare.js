@@ -6,7 +6,7 @@ require('chai')
   .should();
 const truffleAssert = require('truffle-assertions');
 
-const CryptoCare = artifacts.require('./CryptoCare.sol');
+const CryptoCareMinter = artifacts.require('./CryptoCareMinter.sol');
 
 function splitSignature(web3, signature) {
   signature = signature.slice(2);
@@ -31,11 +31,11 @@ async function generateSignature(toAddress, tokenUri, beneficiaryId, nonce, msgV
   return splitSignature(web3, signature);
 }
 
-contract('CryptoCare', (accounts) => {
+contract('CryptoCareMinter', (accounts) => {
   beforeEach(async function () {
     this.web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:9545'));
     this.minterAddress = accounts[0];
-    this.contract = await CryptoCare.deployed();
+    this.contract = await CryptoCareMinter.deployed();
   });
 
   describe('mintTo', () => {
@@ -63,7 +63,6 @@ contract('CryptoCare', (accounts) => {
         assert.equal(tokenId.toNumber(), 1);
         assert.equal(tokenUri, this.tokenUri);
 
-
         truffleAssert.eventEmitted(result, 'Adoption', (ev) => {
           return ev.tokenId.toNumber() === tokenId.toNumber() &&
             ev.toAddress === this.toAddress &&
@@ -71,10 +70,6 @@ contract('CryptoCare', (accounts) => {
             ev.beneficiaryId.toNumber() === this.beneficiaryId &&
             ev.price.toNumber() === this.msgValue &&
             ev.rate.toNumber() === 5
-        });
-
-        truffleAssert.eventEmitted(result, 'Transfer', (ev) => {
-          return ev._to === this.toAddress && ev._tokenId.toNumber() === tokenId.toNumber();
         });
       });
     });
@@ -475,6 +470,35 @@ contract('CryptoCare', (accounts) => {
 
     it('rejects when attempting to call from non-owner address', async function() {
       await this.contract.updateMinter.call(
+        this.minterAddress, { from: accounts[1] }
+      ).should.be.rejectedWith('revert');
+    });
+  });
+
+  describe('updateTokenContract', () => {
+    it('updates the token contract address', async function() {
+      let oldContractAddress = await this.contract.tokenContract();
+      let newContractAddress = '0x8A9Df80fA754Ea6cf7241aF654685c21a87AF22e';
+
+      await this.contract.updateTokenContract(newContractAddress);
+      const retrievedContractAddress = await this.contract.tokenContract();
+      assert.equal(retrievedContractAddress, newContractAddress);
+
+      await this.contract.updateTokenContract(oldContractAddress);
+    });
+
+    it('rejects when paused', async function() {
+      await this.contract.pause();
+
+      await this.contract.updateTokenContract.call(
+        this.minterAddress, { from: accounts[0] }
+      ).should.be.rejectedWith('revert');
+
+      await this.contract.unpause();
+    });
+
+    it('rejects when attempting to call from non-owner address', async function() {
+      await this.contract.updateTokenContract.call(
         this.minterAddress, { from: accounts[1] }
       ).should.be.rejectedWith('revert');
     });
