@@ -57,6 +57,42 @@ contract('CryptoCareToken', (accounts) => {
     });
   });
 
+  describe('updateTokenURI', () => {
+    beforeEach(async function () {
+      this.tokenID = 1;
+      this.tokenURI = 'test URI';
+    });
+
+    it('updates token URI for a given token ID and emits event', async function() {
+      await this.contract.updateTokenURI(
+        this.tokenID, this.tokenURI, { from: this.minterAddress }
+      ).then(async (result) => {
+        const tokenUri = await this.contract.tokenURI(this.tokenID);
+        assert.equal(tokenUri, this.tokenURI);
+
+        truffleAssert.eventEmitted(result, 'TokenURIUpdated', (ev) => {
+          return ev._tokenID.toNumber() === this.tokenID && ev._tokenURI === this.tokenURI
+        });
+      });
+    });
+
+    it('rejects when paused', async function() {
+      await this.contract.pause();
+
+      await this.contract.updateTokenURI.call(
+        this.tokenID, this.tokenURI, { from: this.minterAddress }
+      ).should.be.rejectedWith('revert');
+
+      await this.contract.unpause();
+    });
+
+    it('rejects when called from non-minter address', async function() {
+      await this.contract.updateTokenURI.call(
+        this.tokenID, this.tokenURI, { from: accounts[0] }
+      ).should.be.rejectedWith('revert');
+    });
+  });
+
   describe('updateMinter', () => {
     it('updates the minter address', async function() {
       await this.contract.updateMinter(accounts[0]);
