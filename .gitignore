@@ -1,4 +1,4 @@
 node_modules/
 build/
-rinkeby-config.json
+wallet-config.json
 .zos.session

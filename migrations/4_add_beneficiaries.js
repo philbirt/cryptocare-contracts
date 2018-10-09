@@ -2,16 +2,7 @@ const CryptoCareToken = artifacts.require("./CryptoCareToken.sol");
 const CryptoCareMinter = artifacts.require("./CryptoCareMinter.sol");
 
 module.exports = async function(deployer) {
-  await deployer.deploy(CryptoCareToken);
-  await deployer.deploy(CryptoCareMinter);
-
-  const tokenInstance = await CryptoCareToken.deployed();
   const minterInstance = await CryptoCareMinter.deployed();
-
-  await tokenInstance.updateMinter(minterInstance.address);
-
-  await minterInstance.updateTokenContract(tokenInstance.address);
-  await minterInstance.updateMinter('0x8a9df80fa754ea6cf7241af654685c21a87af22e');
 
   await minterInstance.addBeneficiary(1, '0x5d41f2e86FeCD1205717B099a8546c5cF6F97e57');
   await minterInstance.addBeneficiary(2, '0x50990F09d4f0cb864b8e046e7edC749dE410916b');
