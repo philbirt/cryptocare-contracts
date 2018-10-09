@@ -119,12 +119,9 @@ contract CryptoCareMinter is Ownable, Pausable {
 
     /**
     * @dev Allows owner to withdraw funds in contract
-    * @param _amount the amount to withdraw
     */
-    function withdraw(uint _amount) public onlyOwner whenNotPaused returns(bool) {
-        require(_amount < address(this).balance);
-        owner.transfer(_amount);
-        return true;
+    function withdraw() public onlyOwner whenNotPaused {
+        owner.transfer(address(this).balance);
     }
 
     function tokenURI(uint256 _tokenId) public view returns (string) {
