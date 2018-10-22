@@ -27,7 +27,7 @@ The following is the state of the currently active beneficiaries as of 10/22/201
 | CryptoCare                       | 10 | [0x0033e09340eB452f1DE62Ba53bc98c1D8D6B544D](https://etherscan.io/address/0x0033e09340eB452f1DE62Ba53bc98c1D8D6B544D)  | You can take our word for it :) |
 | Fight for the Future             | 13 | [0xEF0050248aE8E5559Bdc6357cc2574fcDF434837](https://etherscan.io/address/0xEF0050248aE8E5559Bdc6357cc2574fcDF434837)  | [https://donate.fightforthefuture.org/cryptocurrency/](https://donate.fightforthefuture.org/cryptocurrency/) |
 
-Note: These beneficiaries are immutable in nature and may only be deactivated in the future. Their address will never change. You can check they are set correctly [by visiting etherscan for the CryptoCareMinter contract.](https://etherscan.io/address/0xDe870FD5DcAbc964C0c56DBf80Ccb1cCed5ad208)
+Note: These beneficiaries are immutable in nature and may only be deactivated in the future. Their address will never change. You can check they are set correctly [by visiting etherscan for the CryptoCareMinter contract.](https://etherscan.io/address/0xDe870FD5DcAbc964C0c56DBf80Ccb1cCed5ad208#readContract)
 
 
 # Setting up locally
