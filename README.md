@@ -1,11 +1,16 @@
 # CryptoCare Contracts
 
+## Contracts
+
 In the essence of transparency, the following are the contracts deployed to the Main Ethereum Network:
 
 | Contract             | Address                                                                                                                  |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | CryptoCareMinter:    | [0xDe870FD5DcAbc964C0c56DBf80Ccb1cCed5ad208](https://etherscan.io/address/0xDe870FD5DcAbc964C0c56DBf80Ccb1cCed5ad208)    |
 | CryptoCareToken:     | [0xe7049a081f67f1ff4bdbdbf4c48c547d24c48f41](https://etherscan.io/address/0xe7049a081f67f1ff4bdbdbf4c48c547d24c48f41)    |
+
+
+## Beneficiary addresses
 
 The following is the state of the currently active beneficiaries as of 10/22/2018:
 
