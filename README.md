@@ -25,7 +25,7 @@ The following is the state of the currently active beneficiaries as of 10/22/201
 | GRACEaid                         | 8  | [0x236dAA98f115caa9991A3894ae387CDc13eaaD1B](https://etherscan.io/address/0x236dAA98f115caa9991A3894ae387CDc13eaaD1B)  | [https://www.graceaid.org.uk/donations/](https://www.graceaid.org.uk/donations/) |
 | Rainforest Foundation US         | 9  | [0xF29f26a1f5AF03c37bc5Bee665417deE891C8695](https://etherscan.io/address/0xF29f26a1f5AF03c37bc5Bee665417deE891C8695)  | [https://rainforestfoundation.org/donatenow/#etheranchor](https://rainforestfoundation.org/donatenow/#etheranchor) |
 | CryptoCare                       | 10 | [0x0033e09340eB452f1DE62Ba53bc98c1D8D6B544D](https://etherscan.io/address/0x0033e09340eB452f1DE62Ba53bc98c1D8D6B544D)  | You can take our word for it :) |
-| Fight for the Future             | 13 | [0xEF0050248aE8E5559Bdc6357cc2574fcDF434837](https://etherscan.io/address/0xEF0050248aE8E5559Bdc6357cc2574fcDF434837)  | [https://donate.fightforthefuture.org/cryptocurrency/](https://donate.fightforthefuture.org/cryptocurrency/) |
+| Fight for the Future             | 14 | [0xC850388EDEeaAfCb63D92F67C6B8EAB8083FE41A](https://etherscan.io/address/0xC850388EDEeaAfCb63D92F67C6B8EAB8083FE41A)  | [https://donate.fightforthefuture.org/cryptocurrency/](https://donate.fightforthefuture.org/cryptocurrency/) |
 
 Note: These beneficiaries are immutable in nature and may only be deactivated in the future. Their address will never change. You can check they are set correctly [by visiting etherscan for the CryptoCareMinter contract.](https://etherscan.io/address/0xDe870FD5DcAbc964C0c56DBf80Ccb1cCed5ad208#readContract)
 
