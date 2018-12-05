@@ -26,6 +26,9 @@ The following is the state of the currently active beneficiaries as of 10/22/201
 | Rainforest Foundation US         | 9  | [0xF29f26a1f5AF03c37bc5Bee665417deE891C8695](https://etherscan.io/address/0xF29f26a1f5AF03c37bc5Bee665417deE891C8695)  | [https://rainforestfoundation.org/donatenow/#etheranchor](https://rainforestfoundation.org/donatenow/#etheranchor) |
 | CryptoCare                       | 10 | [0x0033e09340eB452f1DE62Ba53bc98c1D8D6B544D](https://etherscan.io/address/0x0033e09340eB452f1DE62Ba53bc98c1D8D6B544D)  | You can take our word for it :) |
 | Fight for the Future             | 14 | [0xC850388EDEeaAfCb63D92F67C6B8EAB8083FE41A](https://etherscan.io/address/0xC850388EDEeaAfCb63D92F67C6B8EAB8083FE41A)  | [https://donate.fightforthefuture.org/cryptocurrency/](https://donate.fightforthefuture.org/cryptocurrency/) |
+| Heifer International: Donate an Animal | 15 | [0x411a4a89858521864De626F67F880a5a8a52Fc45](https://etherscan.io/address/0x411a4a89858521864De626F67F880a5a8a52Fc45)  |  |
+| Heifer International: Sustainable Farming | 16 | [0xc13117b64de78E7b21248057f3B3F340BD7185dA](https://etherscan.io/address/0xc13117b64de78E7b21248057f3B3F340BD7185dA)  |  |
+| Heifer International: Women's Empowerment | 17 | [0x49e17322DeD961BBF87D3bBEc42ebA0de6147668](https://etherscan.io/address/0x49e17322DeD961BBF87D3bBEc42ebA0de6147668)  |  |
 
 Note: These beneficiaries are immutable in nature and may only be deactivated in the future. Their address will never change. You can check they are set correctly [by visiting etherscan for the CryptoCareMinter contract.](https://etherscan.io/address/0xDe870FD5DcAbc964C0c56DBf80Ccb1cCed5ad208#readContract)
 
