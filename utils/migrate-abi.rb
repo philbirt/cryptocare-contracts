@@ -2,25 +2,36 @@
 
 require 'json'
 
+CONTRACT_CONFIG = [
+  {
+    input_path: "./build/contracts/CryptoCareMinter.json",
+    frontend_output_path: "../frontend/src/stores/config-minter-contract.json",
+    node_output_path: "../node-backend/config/config-minter-contract.json"
+  },
+  {
+    input_path: "./build/contracts/CryptoCareToken.json",
+    frontend_output_path: "../frontend/src/stores/config-token-contract.json",
+    node_output_path: "../node-backend/config/config-token-contract.json"
+  },
+]
+
 BLUEPRINT_PATH = "#{File.dirname(__FILE__)}/blueprint.json"
-INPUT_PATH =  "./build/contracts/CryptoCareMinter.json"
 
-FRONTEND_OUTPUT_PATH = "../frontend/src/stores/config-contract.json"
-NODE_OUTPUT_PATH = "../node-backend/config/contract-config.json"
+CONTRACT_CONFIG.each do |config|
+  blueprint_json = JSON.parse(File.open(BLUEPRINT_PATH, "r").read)
+  contract_json = JSON.parse(File.open(config[:input_path], "r").read)
 
-blueprint_json = JSON.parse(File.open(BLUEPRINT_PATH, "r").read)
-contract_json = JSON.parse(File.open(INPUT_PATH, "r").read)
+  blueprint_json['contractAbi'] = contract_json['abi']
 
-blueprint_json['contractAbi'] = contract_json['abi']
+  contract_json['networks'].each do |network_key, network_data|
+    blueprint_json['networks'][network_key]["contractAddress"] = network_data["address"]
+  end
 
-contract_json['networks'].each do |network_key, network_data|
-  blueprint_json['networks'][network_key]["contractAddress"] = network_data["address"]
-end
+  File.open(config[:frontend_output_path], "w") do |f|     
+    f.write(JSON.pretty_generate(blueprint_json))   
+  end
 
-File.open(FRONTEND_OUTPUT_PATH, "w") do |f|     
-  f.write(JSON.pretty_generate(blueprint_json))   
-end
-
-File.open(NODE_OUTPUT_PATH, "w") do |f|     
-  f.write(JSON.pretty_generate(blueprint_json))   
+  File.open(config[:node_output_path], "w") do |f|     
+    f.write(JSON.pretty_generate(blueprint_json))   
+  end
 end
