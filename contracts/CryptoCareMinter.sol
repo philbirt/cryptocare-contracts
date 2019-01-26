@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.4.24;
 
 import "./CryptoCareToken.sol";
 import "zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
