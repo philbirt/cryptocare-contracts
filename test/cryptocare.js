@@ -156,6 +156,17 @@ contract('CryptoCareMinter', (accounts) => {
         ).should.be.rejectedWith('revert');
       });
 
+      it('rejects when rate is greater than 100', async function() {
+        const nonce = 100;
+        const { v, r, s } = await generateSignature(
+          this.web3, this.toAddress, this.tokenUri, this.beneficiaryId, nonce, this.msgValue, this.minterPrivKey
+        );
+
+        await this.contract.mintTo.call(
+          this.toAddress, this.beneficiaryId, this.tokenUri, nonce, 101, v, r, s, this.transactionMsg
+        ).should.be.rejectedWith('revert');
+      });
+
       it('rejects when the contract is paused', async function() {
         const nonce = 1;
         const { v, r, s } = await generateSignature(

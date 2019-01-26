@@ -43,6 +43,7 @@ contract CryptoCareMinter is Ownable, Pausable {
         require(!usedNonces[_nonce]);
         require(beneficiaries[_beneficiaryId].addr > 0);
         require(beneficiaries[_beneficiaryId].isActive);
+        require(_rate < 100);
         require(verifyMessage(keccak256(abi.encodePacked(_to, _tokenURI, _beneficiaryId, _nonce, msg.value)), v, r, s));
         usedNonces[_nonce] = true;
 
